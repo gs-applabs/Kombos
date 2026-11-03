@@ -69,13 +69,11 @@ tray icon με λειτουργία στο παρασκήνιο, και αυτό
 
 1. Κατέβασε το `KombosSetup-<έκδοση>.exe` και το αντίστοιχο `.sha256` από τα [Releases](../../releases/latest).
 2. Επαλήθευσε το αρχείο (PowerShell): `(Get-FileHash .\KombosSetup-<έκδοση>.exe -Algorithm SHA256).Hash` — πρέπει να ταιριάζει με το περιεχόμενο του `.sha256`.
-3. Εκτέλεσέ το (χωρίς δικαιώματα διαχειριστή). Απαιτήσεις: Windows 10/11 x64, [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+3. Εκτέλεσέ το (εγκαθιστά για όλους τους χρήστες στο `Program Files` και ζητά έγκριση διαχειριστή· μια παλιά per-user εγκατάσταση μεταφέρεται αυτόματα, οι ρυθμίσεις μένουν). Απαιτήσεις: Windows 10/11 x64, [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 Άλλες εφαρμογές της ίδιας σειράς: **Η οικογένεια Opsis** (Ρυθμίσεις → Βοήθεια).
 
-Κατεβάστε το τελευταίο `KombosSetup-*.exe` από τα [Releases](../../releases) και εκτελέστε το. Δεν απαιτεί
-δικαιώματα διαχειριστή· προσφέρει προαιρετική συντόμευση επιφάνειας εργασίας και εκκίνηση με τα Windows.
-Χρειάζεται το [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). Χρειάζεσαι δικό σου
+Ο installer προσφέρει προαιρετική συντόμευση επιφάνειας εργασίας και εκκίνηση με τα Windows. Χρειάζεσαι δικό σου
 κλειδί API (π.χ. από [console.anthropic.com](https://console.anthropic.com)) — μπαίνει στις Ρυθμίσεις → Agent,
 κρυπτογραφημένο τοπικά, ποτέ σε καθαρό κείμενο.
 
@@ -168,7 +166,7 @@ No telemetry. Only: (1) `GET api.github.com/repos/giorstergiopoulos-design/Kombo
 
 1. Download `KombosSetup-<version>.exe` and its `.sha256` from the [latest release](../../releases/latest).
 2. Verify it (PowerShell): `(Get-FileHash .\KombosSetup-<version>.exe -Algorithm SHA256).Hash` — it must match the `.sha256` file.
-3. Run it (no admin rights needed). Requirements: Windows 10/11 x64, the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+3. Run it (installs for all users into `Program Files` and asks for administrator approval; an older per-user install is migrated automatically, your settings are kept). Requirements: Windows 10/11 x64, the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 More apps from the same family: **The Opsis family** (Settings → Help).
 

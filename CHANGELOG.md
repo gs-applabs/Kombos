@@ -4,6 +4,20 @@ All notable changes to Kombos, summarized here for GitHub. The full changelog - 
 languages (Greek, English, French, German) - is always available inside the app itself, via the Help panel's
 "Version history" tab.
 
+## v4.9.4 — Install in Program Files, upgrade migration, installer CI, plugin trust
+
+**Changed**
+- The installer now installs **for all users in `%ProgramFiles%\Kombos`** (administrator, 64-bit). Settings and conversations stay in `%AppData%\Kombos`; the executable is no longer writable by a standard user.
+- **Migration from the per-user install** (`%LocalAppData%\Programs\Kombos`): setup ends the old running program (exact path only), runs its uninstaller silently, checks that the uninstall entry and folder are gone (cleans what is left of its own old copy, stops with a message in all four languages otherwise), removes the old `HKCU Run` value and Startup shortcut, and carries the "start with Windows" wish over (pre-selected task; applied explicitly in a silent upgrade). One uninstall entry, one set of shortcuts, one `Kombos.exe`.
+- "Start with Windows" is now the same per-user `Run` value the app writes itself (removed on uninstall); a silent uninstall never deletes your settings, an interactive one asks.
+- Pascal uninstall key written with a single brace in code (`{`), `{{` only in `[Setup]` (the bug found in Opsis News Crawler).
+
+**Added**
+- **Free installer end-to-end CI** (`.github/workflows/installer-e2e.yml`, standard `windows-2022`/`2025` runners, a timeout on every step, a hanging setup/uninstaller fails the step): fresh install, upgrade from the old per-user release, upgrade from the latest release, smoke start (isolated data folder), uninstall and leftovers check. `tools/release.ps1` builds the setup the same way locally and on CI; PowerShell scripts were checked with the PowerShell parser. `windows-ci.yml` builds and runs the unit tests on every push.
+- **Plugin trust model**: a plugin folder under `%AppData%\Kombos\plugins` (writable by the user) is only loaded when its SHA-256 (of **all** `.dll` in the folder, so a planted dependency changes it) equals the bundled plugin of the install folder, or the user approved that exact hash (prompt in 4 languages, "No" is the default; a *changed* plugin asks again). Installing from the gallery / Nexus approves it implicitly (explicit user action). 7 tests.
+
+**Not verified**: the installer was compiled and parsed but NOT run on this PC (by rule); the end-to-end scenarios run on the CI runners only. UAC and per-monitor DPI cannot be tested there.
+
 ## v4.9.3 — Download robustness, safe launching
 
 **Fixed**

@@ -76,6 +76,7 @@ namespace Kombos.Services
             Directory.CreateDirectory(dest);
             foreach (var file in Directory.GetFiles(source, "*.dll"))
                 File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), overwrite: true);
+            ApproveFolder(folderName); // ο χρήστης πάτησε "Εγκατάσταση" σε plugin που έρχεται με την εφαρμογή
         }
 
         /// <summary>Nexus Marketplace (v4.5.0) - γενική εγκατάσταση: αντιγράφει τα δοσμένα .dll σε νέο
@@ -87,6 +88,7 @@ namespace Kombos.Services
             Directory.CreateDirectory(dest);
             foreach (var file in dllPaths)
                 File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), overwrite: true);
+            ApproveFolder(pluginName); // ρητή ενέργεια του χρήστη (τοπικός φάκελος / Git repo που διάλεξε ο ίδιος)
         }
 
         /// <summary>Πλήρης αφαίρεση ενός εγκατεστημένου plugin (bundled ή τρίτου) από το PluginsRoot.</summary>
@@ -96,8 +98,20 @@ namespace Kombos.Services
             if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
         }
 
-        public static List<LoadedPlugin> LoadAll(IKombosHost host, ISet<string> disabledFolders)
+        /// <summary>Εγκρίνει ρητά τον φάκελο ενός plugin (καταγράφει το SHA-256 όλων των .dll του) - καλείται μόνο όταν ο χρήστης
+        /// ο ίδιος ζήτησε την εγκατάσταση (γκαλερί/Nexus) ή αποδέχθηκε το παράθυρο έγκρισης.</summary>
+        public static void ApproveFolder(string folderName, PluginAllowListStore? store = null)
         {
+            var hash = PluginTrust.FolderHash(Path.Combine(PluginsRoot, folderName));
+            if (hash.Length > 0) (store ?? new PluginAllowListStore()).Set(folderName, hash);
+        }
+
+        /// <param name="approve">Καλείται για plugin που ΔΕΝ είναι έμπιστο (άγνωστο ή αλλαγμένο)· αν λείπει ή επιστρέψει false,
+        /// το plugin δεν φορτώνεται.</param>
+        public static List<LoadedPlugin> LoadAll(IKombosHost host, ISet<string> disabledFolders,
+            Func<PluginApproval, bool>? approve = null, PluginAllowListStore? store = null)
+        {
+            store ??= new PluginAllowListStore();
             var loaded = new List<LoadedPlugin>();
             try
             {
@@ -110,6 +124,19 @@ namespace Kombos.Services
 
                     var dll = Directory.GetFiles(dir, "*.dll").FirstOrDefault();
                     if (dll == null) continue;
+
+                    // Εμπιστοσύνη: ο φάκελος του χρήστη είναι εγγράψιμος - φορτώνονται μόνο plugins ίδια με τα bundled του
+                    // Program Files ή εγκεκριμένα με hash.
+                    var trust = PluginTrust.Evaluate(dir, store.Load(), BundledPluginsRoot);
+                    if (trust.State != PluginTrustState.Trusted)
+                    {
+                        if (approve == null || !approve(trust))
+                        {
+                            host.Log($"Plugin '{folderName}' ({trust.State}) δεν φορτώθηκε: δεν έχει εγκριθεί (SHA-256 {trust.Hash[..Math.Min(12, trust.Hash.Length)]}…).");
+                            continue;
+                        }
+                        store.Set(folderName, trust.Hash);
+                    }
 
                     try
                     {

@@ -304,7 +304,7 @@ namespace Kombos
             _presets = PresetsStore.Load();
             SetupSyncFolderWatcher();
             ApplyGatewaySetting();
-            _loadedPlugins = PluginLoader.LoadAll(_pluginHost, _disabledPlugins);
+            _loadedPlugins = PluginLoader.LoadAll(_pluginHost, _disabledPlugins, AskPluginApproval);
             _hiveMemory = HiveMemoryStore.Load();
             RegisterBuiltInSlashCommands();
             ApplyCentralAgent();
@@ -319,6 +319,11 @@ namespace Kombos
         // Πραγματική έξοδος μόνο μέσω "Έξοδος" στο μενού του tray icon. ----------
         private TrayIconService? _trayIcon;
         private bool _reallyExiting;
+
+        /// <summary>Ερώτηση έγκρισης για plugin εκτός bundled που δεν έχει εγκριθεί (ή άλλαξε από την τελευταία έγκριση).</summary>
+        private bool AskPluginApproval(PluginApproval a) =>
+            MessageBox.Show(SuiteStrings.PluginApprovalPrompt(a.Folder, string.Join(", ", a.Files), a.Hash[..Math.Min(12, a.Hash.Length)], a.State == PluginTrustState.Changed),
+                SuiteStrings.PluginApprovalTitle, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
 
         private void InitializeTrayIcon()
         {

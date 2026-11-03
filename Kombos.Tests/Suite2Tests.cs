@@ -64,7 +64,7 @@ namespace Kombos.Tests
                 }
                 foreach (var m in methods)
                 {
-                    var args = m.GetParameters().Select(pr => pr.ParameterType == typeof(int) ? (object)42 : "<<ARG>>").ToArray();
+                    var args = m.GetParameters().Select(pr => pr.ParameterType == typeof(int) ? (object)42 : pr.ParameterType == typeof(bool) ? (object)false : "<<ARG>>").ToArray();
                     foreach (var lang in new[] { Lang.EL, Lang.EN, Lang.FR, Lang.DE })
                     {
                         var v = Value(lang, () => (string)m.Invoke(null, args)!);

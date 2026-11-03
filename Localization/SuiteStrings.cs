@@ -38,6 +38,16 @@ namespace Kombos.Localization
         public static string Update => T("Ενημέρωση", "Update", "Mettre à jour", "Aktualisieren");
         public static string Cancel => T("Ακύρωση", "Cancel", "Annuler", "Abbrechen");
         public static string AppNotFound(string path) => T($"Δεν βρέθηκε το εκτελέσιμο: {path}", $"Executable not found: {path}", $"Exécutable introuvable : {path}", $"Programmdatei nicht gefunden: {path}");
+        public static string PluginApprovalTitle => T("Έγκριση plugin", "Approve plugin", "Approuver le plugin", "Plugin genehmigen");
+        public static string PluginApprovalPrompt(string folder, string files, string shortHash, bool changed) => changed
+            ? T($"Το plugin «{folder}» ΑΛΛΑΞΕ από την τελευταία έγκριση.\n\nΑρχεία: {files}\nSHA-256: {shortHash}…\n\nΝα φορτωθεί; Φόρτωσέ το μόνο αν εμπιστεύεσαι την πηγή του.",
+                $"The plugin \"{folder}\" CHANGED since you last approved it.\n\nFiles: {files}\nSHA-256: {shortHash}…\n\nLoad it? Only if you trust its source.",
+                $"Le plugin « {folder} » a CHANGÉ depuis votre dernière approbation.\n\nFichiers : {files}\nSHA-256 : {shortHash}…\n\nLe charger ? Seulement si vous faites confiance à sa source.",
+                $"Das Plugin „{folder}“ hat sich seit der letzten Genehmigung GEÄNDERT.\n\nDateien: {files}\nSHA-256: {shortHash}…\n\nLaden? Nur wenn Sie der Quelle vertrauen.")
+            : T($"Βρέθηκε νέο plugin «{folder}» στον φάκελο plugins (δεν έρχεται με το Kombos).\n\nΑρχεία: {files}\nSHA-256: {shortHash}…\n\nΝα φορτωθεί; Ένα plugin τρέχει με τα δικαιώματά σου· φόρτωσέ το μόνο αν εμπιστεύεσαι την πηγή του.",
+                $"A new plugin \"{folder}\" was found in the plugins folder (it does not ship with Kombos).\n\nFiles: {files}\nSHA-256: {shortHash}…\n\nLoad it? A plugin runs with your permissions; load it only if you trust its source.",
+                $"Un nouveau plugin « {folder} » a été trouvé dans le dossier des plugins (il n'est pas fourni avec Kombos).\n\nFichiers : {files}\nSHA-256 : {shortHash}…\n\nLe charger ? Un plugin s'exécute avec vos droits ; ne le chargez que si vous faites confiance à sa source.",
+                $"Im Plugin-Ordner wurde ein neues Plugin „{folder}“ gefunden (gehört nicht zu Kombos).\n\nDateien: {files}\nSHA-256: {shortHash}…\n\nLaden? Ein Plugin läuft mit Ihren Rechten; laden Sie es nur, wenn Sie der Quelle vertrauen.");
         public static string Details => T("Λεπτομέρειες", "Details", "Détails", "Details");
         public static string Checking => T("Έλεγχος…", "Checking…", "Vérification…", "Prüfe…");
         public static string Downloading(int pct) => T($"Λήψη… {pct}%", $"Downloading… {pct}%", $"Téléchargement… {pct}%", $"Lade herunter… {pct}%");
