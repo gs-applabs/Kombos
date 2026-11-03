@@ -148,7 +148,9 @@ $exe = Join-Path $MachineDir 'Kombos.exe'
 $env:KOMBOS_DATA_DIR = Join-Path $Out 'smoke-data'        # isolated data: the smoke start never writes into the settings checked above
 $smoke = Start-Process -FilePath $exe -PassThru
 Remove-Item Env:\KOMBOS_DATA_DIR -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 15
+# a slow runner needs longer than a fixed pause: poll for the window (at most 90 s), then keep the program running a little longer
+for ($i = 0; $i -lt 90 -and -not $smoke.HasExited; $i++) { $smoke.Refresh(); if ($smoke.MainWindowHandle -ne 0) { break }; Start-Sleep -Seconds 1 }
+Start-Sleep -Seconds 5
 Check (-not $smoke.HasExited) 'the program starts and keeps running'
 $smoke.Refresh()
 Check ($smoke.MainWindowHandle -ne 0) 'the main window is shown'
