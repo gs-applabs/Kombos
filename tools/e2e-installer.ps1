@@ -161,9 +161,12 @@ Start-Sleep -Seconds 2
 $uninstaller = Join-Path $MachineDir 'unins000.exe'
 Check (Test-Path $uninstaller) 'the uninstaller is there'
 $code = Run-Setup $uninstaller @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') 'uninstall.log'
-for ($i = 0; $i -lt 60 -and (Test-Path (Join-Path $MachineDir 'Kombos.exe')); $i++) { Start-Sleep -Seconds 1 }   # the uninstaller hands over to a helper and returns early
+# the uninstaller hands over to a helper and returns early: wait until the whole folder (unins000.* included) is gone, at most 90 s
+for ($i = 0; $i -lt 90 -and (Test-Path $MachineDir); $i++) { Start-Sleep -Seconds 1 }
+Start-Sleep -Seconds 3                                                                                      # the helper's last registry clean-up
 Check (-not (Test-Path (Join-Path $MachineDir 'Kombos.exe'))) 'the program file is gone'
-Check (-not (Test-Path $MachineDir) -or @(Get-ChildItem $MachineDir -Recurse -File -ErrorAction SilentlyContinue).Count -eq 0) 'no files are left in the Program Files folder'
+$left = if (Test-Path $MachineDir) { @(Get-ChildItem $MachineDir -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName.Substring($MachineDir.Length) }) } else { @() }
+Check ($left.Count -eq 0) "no files are left in the Program Files folder$(if ($left.Count) { ' (left: ' + (($left | Select-Object -First 8) -join ', ') + ')' })"
 Check (-not (Reg-Key 'HKLM' $UninstallKey)) 'the uninstall entry is gone (HKLM)'
 Check (-not (Test-Path $menu)) 'the Start menu folder is gone'
 Check ($null -eq (Reg-Value 'HKLM' $RunKey 'Kombos') -and $null -eq (Reg-Value 'HKCU' $RunKey 'Kombos')) 'no start-up value is left (HKLM / HKCU Run)'
