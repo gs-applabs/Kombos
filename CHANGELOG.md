@@ -4,6 +4,20 @@ All notable changes to Kombos, summarized here for GitHub. The full changelog - 
 languages (Greek, English, French, German) - is always available inside the app itself, via the Help panel's
 "Version history" tab.
 
+## v4.9.6 — Release hygiene
+
+**Traces**: every project now builds deterministically (`Directory.Build.props`: `ContinuousIntegrationBuild`, `Deterministic`, `DeterministicSourcePaths`, `PathMap`), without PDB files in Release. A test (`HygieneTests`) scans our binaries (app, bundled plugins, `_ref`) and every tracked text file for build paths, machine/user names and the personal e-mail address (the debug path built into Microsoft's own apphost template is excluded, it is not ours). The five bundled plugin DLLs and `plugins-src/_ref/Kombos.dll` were rebuilt clean. New commits use the GitHub noreply identity.
+
+**Release information**: Company / Product / Description / Copyright / Authors / RepositoryUrl and File/Assembly/Product version on every exe and dll we build; the installer has the same publisher (`giorstergiopoulos-design`), publisher / support / updates URLs and full version-info resource. A test reads the VersionInfo.
+
+**Inno Setup 7**: `Kombos.iss` refuses to compile with anything older (`#if Ver < EncodeVer(7,0,0) #error`), `tools/release.ps1` looks for Inno Setup 7; CI installs Inno Setup 7.1.1 from the project's official GitHub release after checking its pinned SHA-256 and its Authenticode signature (Pyrsys B.V.).
+
+**No hidden PowerShell**: the installer ended the old per-user program with `powershell -ExecutionPolicy Bypass` (hidden); it now uses WMI (`Win32_Process`) from inside setup, matching the exact old folder. (The app itself never ran PowerShell; a test keeps it that way.)
+
+**Security scan**: the `security-scan` workflow's last run on the published release was green (Defender no detection, trace scan clean, gitleaks no leaks, no vulnerable NuGet packages); `dotnet list package --vulnerable` is clean for the current code.
+
+**Not verified**: the CI path of the new Inno 7 install and the WMI process termination run on the CI runners only after the push (installer-e2e `from-per-user` runs the old program while upgrading); the security scan of this very version runs when the release is published.
+
 ## v4.9.5 — MIT license
 
 - Kombos is now released under the **MIT License**: added `LICENSE` (standard text, recognised by GitHub, "Copyright (c) 2026 giorstergiopoulos-design"), a License section in the README (Greek/English), `PackageLicenseExpression` + `Copyright` in the project file, and the license page in the installer (`LicenseFile`; silent installs are unaffected).

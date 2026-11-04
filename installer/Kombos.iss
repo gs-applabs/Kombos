@@ -8,10 +8,16 @@
 ;   2. Άνοιξε αυτό το αρχείο με τον Inno Setup Compiler (ISCC.exe Kombos.iss) ή πάτησε Compile.
 ;   3. Το KombosSetup-<version>.exe βγαίνει στο installer\output\.
 
+; Inno Setup 7 (ή νεότερο) είναι υποχρεωτικό: το script χρησιμοποιεί τις ρυθμίσεις του 7 και χτίζεται με το ίδιο εργαλείο τοπικά και στο CI.
+#if Ver < EncodeVer(7, 0, 0)
+  #error This script needs Inno Setup 7 or later (see tools\ci-install-inno.ps1).
+#endif
+
 #define MyAppName "Κόμβος"
 #define MyAppNameAscii "Kombos"
-#define MyAppVersion "4.9.5"
-#define MyAppPublisher "Kombos"
+#define MyAppVersion "4.9.6"
+#define MyAppPublisher "giorstergiopoulos-design"
+#define MyAppURL "https://github.com/giorstergiopoulos-design/Kombos"
 #define MyAppExeName "Kombos.exe"
 #define MyPublishDir "..\publish"
 
@@ -20,6 +26,15 @@ AppId={{B3D8F2A1-6C4E-4A9F-9D2B-1E7F5C8A3B60}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}/issues
+AppUpdatesURL={#MyAppURL}/releases
+VersionInfoVersion={#MyAppVersion}.0
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription=Kombos Setup
+VersionInfoProductName=Kombos
+VersionInfoCopyright=Copyright (c) 2026 giorstergiopoulos-design
 DefaultDirName={autopf}\{#MyAppNameAscii}
 DefaultGroupName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
@@ -129,16 +144,30 @@ begin
 end;
 
 // Τερματίζει τα προγράμματα της οποίας η εικόνα βρίσκεται μέσα στον παλιό per-user φάκελο (ακριβής διαδρομή).
+// Μέσω WMI (Win32_Process) μέσα από το ίδιο το setup - καμία κρυφή κονσόλα εντολών.
 procedure EndProgramsIn(Dir: String);
 var
-  ResultCode: Integer;
-  Quoted, Params: String;
+  Locator, Service, Procs, Proc: Variant;
+  I: Integer;
+  Prefix, Path: String;
 begin
-  Quoted := Dir;
-  StringChangeEx(Quoted, '''', '''''', True);
-  Params := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Get-Process Kombos -ErrorAction SilentlyContinue | ' +
-            'Where-Object { $_.Path -and $_.Path.StartsWith(''' + Quoted + '\'', ''OrdinalIgnoreCase'') } | Stop-Process -Force"';
-  Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Prefix := Lowercase(AddBackslash(Dir));
+  try
+    Locator := CreateOleObject('WbemScripting.SWbemLocator');
+    Service := Locator.ConnectServer('.', 'root\cimv2');
+    Procs := Service.ExecQuery('SELECT ExecutablePath FROM Win32_Process WHERE Name = ''{#MyAppExeName}''');
+    for I := 0 to Procs.Count - 1 do
+    begin
+      Proc := Procs.ItemIndex(I);
+      if not VarIsNull(Proc.ExecutablePath) then
+      begin
+        Path := Lowercase(Proc.ExecutablePath);
+        if Pos(Prefix, Path) = 1 then Proc.Terminate();
+      end;
+    end;
+  except
+    // WMI not available: the old uninstaller and the checks below still run; a program that stays makes setup stop with a message
+  end;
 end;
 
 // Επιστρέφει '' όταν το per-user αντίγραφο έφυγε, αλλιώς τον λόγο.

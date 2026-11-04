@@ -8,11 +8,11 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 
 if (-not $Iscc) {
+    # Inno Setup 7 is required (Kombos.iss has a guard); look for it first
     $candidates = @("$env:LOCALAPPDATA\Programs", $env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ -and (Test-Path $_) } |
-        ForEach-Object { Get-ChildItem $_ -Directory -Filter 'Inno Setup*' -ErrorAction SilentlyContinue } | Sort-Object Name -Descending |
+        ForEach-Object { Get-ChildItem $_ -Directory -Filter 'Inno Setup 7*' -ErrorAction SilentlyContinue } | Sort-Object Name -Descending |
         ForEach-Object { Join-Path $_.FullName 'ISCC.exe' } | Where-Object { Test-Path $_ }
     $Iscc = $candidates | Select-Object -First 1
-    if (-not $Iscc) { $Iscc = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source }
 }
 if (-not $Iscc) { throw 'ISCC.exe (Inno Setup) was not found' }
 

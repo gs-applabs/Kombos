@@ -1,0 +1,32 @@
+<Project>
+
+  <!-- Κοινά για ΟΛΑ τα projects του repo (εφαρμογή, tests, plugins-src\*):
+       1. Χωρίς ίχνη του μηχανήματος που χτίζει: ντετερμινιστικό build, PathMap των διαδρομών πηγαίου κώδικα, κανένα PDB στο Release
+          (το trace scan του security-scan και το test HygieneTests ψάχνουν διαδρομές του μηχανήματος build και προσωπικά δεδομένα μέσα στα binaries).
+       2. Πληροφορίες έκδοσης (Company/Product/Description/Copyright/Authors) σε κάθε exe/dll - ίδιος εκδότης με τον installer. -->
+  <PropertyGroup>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
+    <PathMap>$(MSBuildProjectDirectory)=/src</PathMap>
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>giorstergiopoulos-design</Company>
+    <Authors>giorstergiopoulos-design</Authors>
+    <Product>Kombos</Product>
+    <Description>Kombos - a local Windows hub for AI tools, with Claude as the agent that ties them together.</Description>
+    <Copyright>Copyright (c) 2026 giorstergiopoulos-design</Copyright>
+    <RepositoryUrl>https://github.com/giorstergiopoulos-design/Kombos</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>
