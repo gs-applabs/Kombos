@@ -4,6 +4,10 @@ All notable changes to Kombos, summarized here for GitHub. The full changelog - 
 languages (Greek, English, French, German) - is always available inside the app itself, via the Help panel's
 "Version history" tab.
 
+## v4.9.5 — MIT license
+
+- Kombos is now released under the **MIT License**: added `LICENSE` (standard text, recognised by GitHub, "Copyright (c) 2026 giorstergiopoulos-design"), a License section in the README (Greek/English), `PackageLicenseExpression` + `Copyright` in the project file, and the license page in the installer (`LicenseFile`; silent installs are unaffected).
+
 ## v4.9.4 — Install in Program Files, upgrade migration, installer CI, plugin trust
 
 **Changed**

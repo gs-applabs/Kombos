@@ -200,6 +200,10 @@ example. The full change history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Άδεια / License
 
+Το Kombos διατίθεται με άδεια **MIT** — δες το αρχείο [LICENSE](LICENSE). Copyright (c) 2026 giorstergiopoulos-design.
+
+*Kombos is released under the **MIT License** — see [LICENSE](LICENSE). Copyright (c) 2026 giorstergiopoulos-design.*
+
 Τα κλειδιά API που εισάγεις χρησιμοποιούνται με δική σου ευθύνη· κάθε χρέωση γίνεται στον δικό σου
 λογαριασμό στον αντίστοιχο πάροχο. Τα εργαλεία/agents τρίτων που εμφανίζονται στον κατάλογο δεν ανήκουν
 ούτε ελέγχονται από αυτή την εφαρμογή. Το Kombos Gateway είναι εμπνευσμένο από την ιδέα του ανοιχτού
