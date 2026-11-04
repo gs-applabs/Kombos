@@ -10,7 +10,7 @@
 
 #define MyAppName "Κόμβος"
 #define MyAppNameAscii "Kombos"
-#define MyAppVersion "4.9.4"
+#define MyAppVersion "4.9.5"
 #define MyAppPublisher "Kombos"
 #define MyAppExeName "Kombos.exe"
 #define MyPublishDir "..\publish"
@@ -36,6 +36,8 @@ DisableProgramGroupPage=yes
 ; v4.9.4: εγκατάσταση για όλους τους χρήστες στο Program Files (το εκτελέσιμο δεν είναι εγγράψιμο από απλό χρήστη). Οι ρυθμίσεις
 ; μένουν στο %AppData%\Kombos. Παλιά per-user εγκατάσταση (%LocalAppData%\Programs\Kombos) αφαιρείται πρώτα, βλ. RemovePerUserInstall.
 PrivilegesRequired=admin
+; Άδεια MIT (αρχείο LICENSE στη ρίζα του repo): εμφανίζεται ως σελίδα στον οδηγό εγκατάστασης.
+LicenseFile=..\LICENSE
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=yes
