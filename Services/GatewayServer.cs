@@ -102,8 +102,34 @@ namespace Kombos.Services
                     return;
                 }
 
-                using var reader = new StreamReader(ctx.Request.InputStream, Encoding.UTF8);
-                var bodyText = await reader.ReadToEndAsync();
+                // Προστασία από CSRF/κατάχρηση: μια ιστοσελίδα του browser δεν πρέπει να μπορεί να ξοδέψει τα αποθηκευμένα κλειδιά.
+                if (CheckRequestSafety(ctx.Request.Headers["Origin"], ctx.Request.ContentType, ctx.Request.ContentLength64) is { } unsafeRequest)
+                {
+                    ctx.Response.StatusCode = unsafeRequest.Status;
+                    await WriteJsonAsync(ctx, new { error = unsafeRequest.Error });
+                    return;
+                }
+
+                // Ανάγνωση σώματος με πραγματικό όριο (το chunked αίτημα δεν έχει Content-Length, άρα μετράμε τα bytes που φτάνουν).
+                byte[] bodyBytes;
+                using (var ms = new MemoryStream())
+                {
+                    var chunk = new byte[16 * 1024];
+                    int n;
+                    while ((n = await ctx.Request.InputStream.ReadAsync(chunk, 0, chunk.Length)) > 0)
+                    {
+                        if (ms.Length + n > MaxBodyBytes)
+                        {
+                            ctx.Response.StatusCode = 413;
+                            await WriteJsonAsync(ctx, new { error = "Το αίτημα είναι υπερβολικά μεγάλο." });
+                            return;
+                        }
+                        ms.Write(chunk, 0, n);
+                    }
+                    bodyBytes = ms.ToArray();
+                }
+                string bodyText;
+                using (var reader = new StreamReader(new MemoryStream(bodyBytes), Encoding.UTF8)) bodyText = await reader.ReadToEndAsync();
                 using var doc = JsonDocument.Parse(bodyText);
                 var root = doc.RootElement;
 
@@ -166,6 +192,15 @@ namespace Kombos.Services
                 ctx.Response.StatusCode = 502;
                 await WriteJsonAsync(ctx, new { error = $"Όλα τα ρυθμισμένα agents απέτυχαν. Τελευταίο σφάλμα: {lastError?.Message}" });
             }
+            catch (JsonException)
+            {
+                try
+                {
+                    ctx.Response.StatusCode = 400;
+                    await WriteJsonAsync(ctx, new { error = "Μη έγκυρο JSON στο σώμα του αιτήματος." });
+                }
+                catch { /* η σύνδεση μπορεί να έχει ήδη κλείσει */ }
+            }
             catch (Exception ex)
             {
                 try
@@ -175,6 +210,24 @@ namespace Kombos.Services
                 }
                 catch { /* η σύνδεση μπορεί να έχει ήδη κλείσει */ }
             }
+        }
+
+        /// <summary>Μέγιστο μέγεθος σώματος αιτήματος (4 MB - υπεραρκετό για συνομιλία, αποτρέπει εξάντληση μνήμης).</summary>
+        public const long MaxBodyBytes = 4L * 1024 * 1024;
+
+        /// <summary>Έλεγχος ασφάλειας ΠΡΙΝ διαβαστεί το σώμα. Επιστρέφει null αν το αίτημα είναι αποδεκτό, αλλιώς (κωδικός, μήνυμα).
+        /// • Origin: οι browsers το στέλνουν σε κάθε cross-origin αίτημα· οι πελάτες API (curl, SDK, Open WebUI server-side) όχι. Αν υπάρχει → 403
+        ///   (μια ιστοσελίδα δεν πρέπει να χρησιμοποιεί την τοπική πύλη). • Content-Type: μόνο application/json (οι OpenAI-συμβατοί πελάτες
+        ///   το στέλνουν πάντα) - αναγκάζει τον browser σε preflight, που η πύλη δεν εγκρίνει ποτέ. • Content-Length: αν δηλώνεται, ≤ MaxBodyBytes.</summary>
+        public static (int Status, string Error)? CheckRequestSafety(string? origin, string? contentType, long contentLength)
+        {
+            if (!string.IsNullOrEmpty(origin))
+                return (403, "Αιτήματα από σελίδες browser (κεφαλίδα Origin) δεν επιτρέπονται στην τοπική πύλη.");
+            if (contentType == null || !contentType.TrimStart().StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+                return (415, "Απαιτείται Content-Type: application/json.");
+            if (contentLength > MaxBodyBytes)
+                return (413, "Το αίτημα είναι υπερβολικά μεγάλο.");
+            return null;
         }
 
         private static async Task WriteJsonAsync(HttpListenerContext ctx, object payload)
