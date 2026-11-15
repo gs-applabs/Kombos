@@ -71,8 +71,8 @@ namespace Kombos.Services
         /// επανεκκίνηση (ο ήδη τρέχων PluginLoader.LoadAll έχει ήδη τρέξει μία φορά στην εκκίνηση).</summary>
         public static void InstallBundledPlugin(string folderName)
         {
-            var source = Path.Combine(BundledPluginsRoot, folderName);
-            var dest = Path.Combine(PluginsRoot, folderName);
+            var source = ResolveUnder(BundledPluginsRoot, folderName);
+            var dest = ResolveUnder(PluginsRoot, folderName);
             Directory.CreateDirectory(dest);
             foreach (var file in Directory.GetFiles(source, "*.dll"))
                 File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), overwrite: true);
@@ -84,7 +84,7 @@ namespace Kombos.Services
         /// πηγή .dll (τοπικός φάκελος ή κατεβασμένο Git repo) - βλ. Services/PluginMarketplace.cs.</summary>
         public static void InstallFromDllFiles(string pluginName, IEnumerable<string> dllPaths)
         {
-            var dest = Path.Combine(PluginsRoot, pluginName);
+            var dest = ResolveUnder(PluginsRoot, pluginName);
             Directory.CreateDirectory(dest);
             foreach (var file in dllPaths)
                 File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), overwrite: true);
@@ -94,8 +94,23 @@ namespace Kombos.Services
         /// <summary>Πλήρης αφαίρεση ενός εγκατεστημένου plugin (bundled ή τρίτου) από το PluginsRoot.</summary>
         public static void UninstallPlugin(string folderName)
         {
-            var dir = Path.Combine(PluginsRoot, folderName);
+            var dir = ResolveUnder(PluginsRoot, folderName);
             if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+
+        /// <summary>Επιστρέφει τη διαδρομή <paramref name="root"/>\<paramref name="name"/> ΜΟΝΟ αν το όνομα είναι απλό όνομα φακέλου
+        /// (χωρίς διαχωριστικά, ".." ή απόλυτη διαδρομή) και το αποτέλεσμα μένει μέσα στο root. Αλλιώς ρίχνει ArgumentException -
+        /// αποτρέπει path traversal ώστε η εγκατάσταση/απεγκατάσταση να μη γράφει ή διαγράφει εκτός του PluginsRoot.</summary>
+        public static string ResolveUnder(string root, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name) || name.IndexOfAny(new[] { '/', '\\', ':' }) >= 0 ||
+                name.Trim('.').Length == 0 || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                throw new ArgumentException("Μη έγκυρο όνομα φακέλου plugin.", nameof(name));
+            var rootFull = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var full = Path.GetFullPath(Path.Combine(rootFull, name));
+            if (!full.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Το plugin βγαίνει εκτός του φακέλου plugins.", nameof(name));
+            return full;
         }
 
         /// <summary>Εγκρίνει ρητά τον φάκελο ενός plugin (καταγράφει το SHA-256 όλων των .dll του) - καλείται μόνο όταν ο χρήστης
