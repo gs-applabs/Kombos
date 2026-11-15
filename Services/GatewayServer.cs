@@ -136,6 +136,14 @@ namespace Kombos.Services
                     return;
                 }
 
+                // Προστασία από CSRF/κατάχρηση: μια ιστοσελίδα του browser δεν πρέπει να μπορεί να ξοδέψει τα αποθηκευμένα κλειδιά.
+                if (CheckRequestSafety(ctx.Request.Headers["Origin"], ctx.Request.ContentType, ctx.Request.ContentLength64) is { } unsafeRequest)
+                {
+                    ctx.Response.StatusCode = unsafeRequest.Status;
+                    await WriteJsonAsync(ctx, new { error = unsafeRequest.Error });
+                    return;
+                }
+
                 if (ctx.Request.ContentLength64 > MaxBodyBytes)
                 {
                     ctx.Response.StatusCode = 413;
@@ -211,6 +219,15 @@ namespace Kombos.Services
                 ctx.Response.StatusCode = 502;
                 await WriteJsonAsync(ctx, new { error = $"Όλα τα ρυθμισμένα agents απέτυχαν. Τελευταίο σφάλμα: {lastError?.Message}" });
             }
+            catch (JsonException)
+            {
+                try
+                {
+                    ctx.Response.StatusCode = 400;
+                    await WriteJsonAsync(ctx, new { error = "Μη έγκυρο JSON στο σώμα του αιτήματος." });
+                }
+                catch { /* η σύνδεση μπορεί να έχει ήδη κλείσει */ }
+            }
             catch (Exception ex)
             {
                 try
@@ -220,6 +237,21 @@ namespace Kombos.Services
                 }
                 catch { /* η σύνδεση μπορεί να έχει ήδη κλείσει */ }
             }
+        }
+
+        /// <summary>Έλεγχος ασφάλειας ΠΡΙΝ διαβαστεί το σώμα. Επιστρέφει null αν το αίτημα είναι αποδεκτό, αλλιώς (κωδικός, μήνυμα).
+        /// • Origin: οι browsers το στέλνουν σε κάθε cross-origin αίτημα· οι πελάτες API (curl, SDK, Open WebUI server-side) όχι. Αν υπάρχει → 403
+        ///   (μια ιστοσελίδα δεν πρέπει να χρησιμοποιεί την τοπική πύλη). • Content-Type: μόνο application/json (οι OpenAI-συμβατοί πελάτες
+        ///   το στέλνουν πάντα) - αναγκάζει τον browser σε preflight, που η πύλη δεν εγκρίνει ποτέ. • Content-Length: αν δηλώνεται, ≤ MaxBodyBytes.</summary>
+        public static (int Status, string Error)? CheckRequestSafety(string? origin, string? contentType, long contentLength)
+        {
+            if (!string.IsNullOrEmpty(origin))
+                return (403, "Αιτήματα από σελίδες browser (κεφαλίδα Origin) δεν επιτρέπονται στην τοπική πύλη.");
+            if (contentType == null || !contentType.TrimStart().StartsWith("application/json", StringComparison.OrdinalIgnoreCase))
+                return (415, "Απαιτείται Content-Type: application/json.");
+            if (contentLength > MaxBodyBytes)
+                return (413, "Το αίτημα είναι υπερβολικά μεγάλο.");
+            return null;
         }
 
         private static async Task WriteJsonAsync(HttpListenerContext ctx, object payload)
