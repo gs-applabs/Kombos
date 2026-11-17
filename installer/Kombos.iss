@@ -15,7 +15,7 @@
 
 #define MyAppName "Κόμβος"
 #define MyAppNameAscii "Kombos"
-#define MyAppVersion "4.9.6"
+#define MyAppVersion "4.9.7"
 #define MyAppPublisher "giorstergiopoulos-design"
 #define MyAppURL "https://github.com/giorstergiopoulos-design/Kombos"
 #define MyAppExeName "Kombos.exe"
@@ -42,11 +42,17 @@ OutputDir=output
 OutputBaseFilename=KombosSetup-{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
-WizardStyle=modern
+WizardStyle=modern dynamic
 ; Εικονίδιο του ίδιου του installer + εικόνες των σελίδων του οδηγού (100/150/200 % DPI) με το εικονίδιο του Κόμβου.
 SetupIconFile=..\kombos.ico
-WizardImageFile=wizard-large-100.bmp,wizard-large-150.bmp,wizard-large-200.bmp
-WizardSmallImageFile=wizard-small-100.bmp,wizard-small-150.bmp,wizard-small-200.bmp
+; Ο οδηγός ακολουθεί το ανοιχτό/σκούρο θέμα των Windows (dynamic, ελέγχεται μία φορά στην εκκίνηση του Setup). Οι εικόνες φτιάχνονται από
+; tools\make-wizard-art.py: ψηλή εικόνα ανοιχτή + βαθύτερη σκούρα, μικρή εικόνα PNG με ΔΙΑΦΑΝΕΣ φόντο (κανένα λευκό τετράγωνο σε σκούρη σελίδα).
+WizardImageFile=wizard\large-100.bmp,wizard\large-125.bmp,wizard\large-150.bmp,wizard\large-200.bmp
+WizardImageFileDynamicDark=wizard\dark-large-100.bmp,wizard\dark-large-125.bmp,wizard\dark-large-150.bmp,wizard\dark-large-200.bmp
+WizardImageBackColor=#FBF8F3
+WizardImageBackColorDynamicDark=#1B1713
+WizardSmallImageFile=wizard\small-100.png,wizard\small-125.png,wizard\small-150.png,wizard\small-200.png
+WizardSmallImageFileDynamicDark=wizard\small-100.png,wizard\small-125.png,wizard\small-150.png,wizard\small-200.png
 DisableProgramGroupPage=yes
 ; v4.9.4: εγκατάσταση για όλους τους χρήστες στο Program Files (το εκτελέσιμο δεν είναι εγγράψιμο από απλό χρήστη). Οι ρυθμίσεις
 ; μένουν στο %AppData%\Kombos. Παλιά per-user εγκατάσταση (%LocalAppData%\Programs\Kombos) αφαιρείται πρώτα, βλ. RemovePerUserInstall.

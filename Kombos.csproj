@@ -8,10 +8,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Πρέπει να ταιριάζει με το Kombos.Localization.L.AppVersion και το installer\Kombos.iss (ελέγχεται από test): το installer-e2e διαβάζει από εδώ την έκδοση του εγκατεστημένου .exe. -->
-    <Version>4.9.6</Version>
-    <FileVersion>4.9.6.0</FileVersion>
-    <AssemblyVersion>4.9.6.0</AssemblyVersion>
-    <InformationalVersion>4.9.6</InformationalVersion>
+    <Version>4.9.7</Version>
+    <FileVersion>4.9.7.0</FileVersion>
+    <AssemblyVersion>4.9.7.0</AssemblyVersion>
+    <InformationalVersion>4.9.7</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <AssemblyName>Kombos</AssemblyName>
     <RootNamespace>Kombos</RootNamespace>

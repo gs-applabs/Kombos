@@ -56,14 +56,24 @@ namespace Kombos.Services
 
         /// <summary>Χτίζει ή ενημερώνει το ευρετήριο ενός project - rehash μόνο για αρχεία των οποίων άλλαξε
         /// η ημερομηνία τροποποίησης από την τελευταία φορά.</summary>
-        public static ProjectIndex BuildOrUpdateIndex(string rootPath)
+        /// <summary>Αρχεία μεγαλύτερα από αυτό το όριο δεν διαβάζονται καθόλου για hash (καταγράφεται "large" + μέγεθος/ημερομηνία).</summary>
+        public const long MaxHashFileBytes = 64L * 1024 * 1024;
+
+        /// <summary>Ίδιο με το <see cref="BuildOrUpdateIndex"/> αλλά σε νήμα παρασκηνίου, με πρόοδο και ακύρωση - το UI δεν παγώνει.</summary>
+        public static System.Threading.Tasks.Task<ProjectIndex> BuildOrUpdateIndexAsync(string rootPath, IProgress<int>? progress = null, System.Threading.CancellationToken ct = default) =>
+            System.Threading.Tasks.Task.Run(() => BuildOrUpdateIndex(rootPath, progress, ct), ct);
+
+        public static ProjectIndex BuildOrUpdateIndex(string rootPath, IProgress<int>? progress = null, System.Threading.CancellationToken ct = default)
         {
             var existing = LoadIndex(rootPath);
             var existingByPath = existing?.Files.ToDictionary(f => f.RelativePath) ?? new Dictionary<string, ProjectFileEntry>();
 
             var index = new ProjectIndex { RootPath = rootPath, LastIndexedUtc = DateTime.UtcNow };
+            int done = 0;
             foreach (var file in EnumerateProjectFiles(rootPath))
             {
+                ct.ThrowIfCancellationRequested();
+                if (++done % 50 == 0) progress?.Report(done);
                 var relPath = Path.GetRelativePath(rootPath, file);
                 var mtimeTicks = File.GetLastWriteTimeUtc(file).Ticks;
 
@@ -74,7 +84,12 @@ namespace Kombos.Services
                 }
 
                 string hash;
-                try { hash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file)))[..16]; }
+                try
+                {
+                    // streaming hash: το αρχείο δεν φορτώνεται ολόκληρο στη μνήμη· τεράστια αρχεία δεν διαβάζονται καθόλου
+                    using var fs = File.OpenRead(file);
+                    hash = fs.Length > MaxHashFileBytes ? "large" : Convert.ToHexString(SHA256.HashData(fs))[..16];
+                }
                 catch { continue; }
                 index.Files.Add(new ProjectFileEntry { RelativePath = relPath, Hash = hash, LastModifiedTicks = mtimeTicks });
             }

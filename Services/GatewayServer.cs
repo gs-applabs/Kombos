@@ -40,6 +40,11 @@ namespace Kombos.Services
         private HttpListener? _listener;
         private CancellationTokenSource? _cts;
 
+        /// <summary>Όρια (v4.9.7): μέγιστο μέγεθος body και μέγιστος αριθμός ταυτόχρονων requests - πέρα από αυτά 413 / 503.</summary>
+        public const int MaxBodyBytes = 1_000_000;
+        public const int MaxConcurrentRequests = 8;
+        private readonly SemaphoreSlim _slots = new(MaxConcurrentRequests, MaxConcurrentRequests);
+
         public bool IsRunning => _listener?.IsListening == true;
         public int Port { get; private set; }
 
@@ -87,8 +92,37 @@ namespace Kombos.Services
                 HttpListenerContext ctx;
                 try { ctx = await listener.GetContextAsync(); }
                 catch { break; } // ο listener σταμάτησε (Stop() κλήθηκε)
-                _ = Task.Run(() => HandleRequestAsync(ctx), ct);
+                if (!_slots.Wait(0))
+                {
+                    _ = Task.Run(() => RejectBusyAsync(ctx), ct); // πολλά ταυτόχρονα requests: άμεση απάντηση 503, χωρίς δουλειά
+                    continue;
+                }
+                _ = Task.Run(async () => { try { await HandleRequestAsync(ctx); } finally { _slots.Release(); } }, ct);
             }
+        }
+
+        private static async Task RejectBusyAsync(HttpListenerContext ctx)
+        {
+            try
+            {
+                ctx.Response.StatusCode = 503;
+                await WriteJsonAsync(ctx, new { error = "Too many concurrent requests." });
+            }
+            catch { /* ο πελάτης έφυγε */ }
+        }
+
+        /// <summary>Διαβάζει το body με άνω όριο· επιστρέφει null αν το ξεπερνά (δεν φορτώνεται ποτέ ολόκληρο στη μνήμη).</summary>
+        internal static async Task<string?> ReadBodyLimitedAsync(Stream input, int maxBytes)
+        {
+            using var ms = new MemoryStream();
+            var buffer = new byte[16 * 1024];
+            int n;
+            while ((n = await input.ReadAsync(buffer)) > 0)
+            {
+                if (ms.Length + n > maxBytes) return null;
+                ms.Write(buffer, 0, n);
+            }
+            return Encoding.UTF8.GetString(ms.ToArray());
         }
 
         private async Task HandleRequestAsync(HttpListenerContext ctx)
@@ -102,8 +136,19 @@ namespace Kombos.Services
                     return;
                 }
 
-                using var reader = new StreamReader(ctx.Request.InputStream, Encoding.UTF8);
-                var bodyText = await reader.ReadToEndAsync();
+                if (ctx.Request.ContentLength64 > MaxBodyBytes)
+                {
+                    ctx.Response.StatusCode = 413;
+                    await WriteJsonAsync(ctx, new { error = $"Request body too large (max {MaxBodyBytes} bytes)." });
+                    return;
+                }
+                var bodyText = await ReadBodyLimitedAsync(ctx.Request.InputStream, MaxBodyBytes);
+                if (bodyText == null)
+                {
+                    ctx.Response.StatusCode = 413;
+                    await WriteJsonAsync(ctx, new { error = $"Request body too large (max {MaxBodyBytes} bytes)." });
+                    return;
+                }
                 using var doc = JsonDocument.Parse(bodyText);
                 var root = doc.RootElement;
 

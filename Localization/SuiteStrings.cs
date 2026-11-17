@@ -15,15 +15,15 @@ namespace Kombos.Localization
 
         public static string SuiteTitle => T("Η οικογένεια Opsis", "The Opsis family", "La famille Opsis", "Die Opsis-Familie");
         public static string SuiteSubtitle => T(
-            "Οι εφαρμογές που φτιάχτηκαν μαζί, για Windows. Άνοιξε όποια έχεις ήδη ή κατέβασε τις υπόλοιπες από το GitHub.",
-            "The apps built together, for Windows. Open the ones you already have or download the rest from GitHub.",
-            "Les applications conçues ensemble pour Windows. Ouvrez celles que vous avez déjà ou téléchargez les autres depuis GitHub.",
-            "Die zusammen entwickelten Apps für Windows. Öffne die bereits installierten oder lade die übrigen von GitHub.");
+            "Οι εφαρμογές που φτιάχτηκαν μαζί, για Windows. Άνοιξε όποια έχεις ήδη ή δες τις υπόλοιπες στη σελίδα τους στο GitHub.",
+            "The apps built together, for Windows. Open the ones you already have or see the others on their GitHub page.",
+            "Les applications conçues ensemble pour Windows. Ouvrez celles que vous avez déjà ou découvrez les autres sur leur page GitHub.",
+            "Die zusammen entwickelten Apps für Windows. Öffne die bereits installierten oder sieh dir die übrigen auf ihrer GitHub-Seite an.");
         public static string SuiteFooter => T(
-            "Η λίστα ανανεώνεται το πολύ μία φορά την ημέρα από το GitHub. Η εγκατάσταση δεν ξεκινά ποτέ αυτόματα· κάθε λήψη ζητά επιβεβαίωση και ελέγχεται με SHA-256.",
-            "The list refreshes at most once a day from GitHub. Nothing is ever installed automatically; every download asks first and is verified with SHA-256.",
-            "La liste est actualisée au plus une fois par jour depuis GitHub. Rien n'est installé automatiquement ; chaque téléchargement demande confirmation et est vérifié par SHA-256.",
-            "Die Liste wird höchstens einmal täglich von GitHub aktualisiert. Nichts wird automatisch installiert; jeder Download fragt nach und wird per SHA-256 geprüft.");
+            "Αυτός είναι μόνο κατάλογος: η λίστα ανανεώνεται το πολύ μία φορά την ημέρα από το GitHub και τίποτα δεν κατεβαίνει ή εγκαθίσταται από εδώ· το «Λεπτομέρειες» ανοίγει τη σελίδα της εφαρμογής.",
+            "This is a catalogue only: the list refreshes at most once a day from GitHub and nothing is downloaded or installed from here; \"Details\" opens the app's page.",
+            "Ceci n'est qu'un catalogue : la liste est actualisée au plus une fois par jour depuis GitHub et rien n'est téléchargé ni installé d'ici ; « Détails » ouvre la page de l'application.",
+            "Dies ist nur ein Katalog: Die Liste wird höchstens einmal täglich von GitHub aktualisiert, von hier wird nichts geladen oder installiert; „Details“ öffnet die Seite der App.");
         public static string SuiteClose => T("Κλείσιμο", "Close", "Fermer", "Schließen");
         public static string YouAreHere => T("Βρίσκεσαι εδώ", "You are here", "Vous êtes ici", "Du bist hier");
         public static string NotInstalled => T("Δεν είναι εγκατεστημένο", "Not installed", "Non installé", "Nicht installiert");
@@ -48,6 +48,18 @@ namespace Kombos.Localization
                 $"A new plugin \"{folder}\" was found in the plugins folder (it does not ship with Kombos).\n\nFiles: {files}\nSHA-256: {shortHash}…\n\nLoad it? A plugin runs with your permissions; load it only if you trust its source.",
                 $"Un nouveau plugin « {folder} » a été trouvé dans le dossier des plugins (il n'est pas fourni avec Kombos).\n\nFichiers : {files}\nSHA-256 : {shortHash}…\n\nLe charger ? Un plugin s'exécute avec vos droits ; ne le chargez que si vous faites confiance à sa source.",
                 $"Im Plugin-Ordner wurde ein neues Plugin „{folder}“ gefunden (gehört nicht zu Kombos).\n\nDateien: {files}\nSHA-256: {shortHash}…\n\nLaden? Ein Plugin läuft mit Ihren Rechten; laden Sie es nur, wenn Sie der Quelle vertrauen.");
+        public static string InstallNow => T("Εγκατάσταση τώρα", "Install now", "Installer maintenant", "Jetzt installieren");
+        public static string UpdateUpToDate => T("Έχεις ήδη την τελευταία έκδοση.", "You already have the latest version.", "Vous avez déjà la dernière version.", "Du hast bereits die neueste Version.");
+        public static string UpdateFailed(string why) => T($"Η ενημέρωση δεν ήταν δυνατή ({why}). Ανοίγω τη σελίδα του release.", $"The update could not be done ({why}). Opening the release page.", $"La mise à jour n'a pas pu être effectuée ({why}). Ouverture de la page de la version.", $"Das Update war nicht möglich ({why}). Die Release-Seite wird geöffnet.");
+        public static string UpdateDownloading(string version, int pct) => T($"Λήψη του Κόμβου {version}… {pct}%", $"Downloading Kombos {version}… {pct}%", $"Téléchargement de Kombos {version}… {pct}%", $"Kombos {version} wird geladen… {pct}%");
+        public static string UpdateLaunchCancelled => T("Η εγκατάσταση δεν ξεκίνησε (το UAC απορρίφθηκε). Ο Κόμβος μένει ανοιχτός.", "Setup did not start (UAC was declined). Kombos stays open.", "L'installation n'a pas démarré (UAC refusé). Kombos reste ouvert.", "Das Setup wurde nicht gestartet (UAC abgelehnt). Kombos bleibt geöffnet.");
+        public static string UpdateConfirm(string version, string file, string size, string source) => T(
+            $"Εγκατάσταση του Κόμβου {version};\n\n{file} ({size})\nΠηγή: {source}\n\nΤο αρχείο θα επαληθευτεί με SHA-256. Μετά ο Κόμβος θα κλείσει, τα Windows θα ζητήσουν έγκριση διαχειριστή και θα ανοίξει ο οδηγός εγκατάστασης.",
+            $"Install Kombos {version}?\n\n{file} ({size})\nSource: {source}\n\nThe file is verified with SHA-256. Then Kombos closes, Windows asks for administrator approval and the setup wizard opens.",
+            $"Installer Kombos {version} ?\n\n{file} ({size})\nSource : {source}\n\nLe fichier est vérifié par SHA-256. Ensuite Kombos se ferme, Windows demande l'approbation de l'administrateur et l'assistant d'installation s'ouvre.",
+            $"Kombos {version} installieren?\n\n{file} ({size})\nQuelle: {source}\n\nDie Datei wird per SHA-256 geprüft. Danach wird Kombos geschlossen, Windows fragt nach Administratorrechten und der Setup-Assistent öffnet sich.");
+        public static string HotkeyBusy(string keys) => T($"Η συντόμευση {keys} είναι δεσμευμένη από άλλη εφαρμογή και δεν λειτουργεί στον Κόμβο.", $"The shortcut {keys} is taken by another application and does not work in Kombos.", $"Le raccourci {keys} est utilisé par une autre application et ne fonctionne pas dans Kombos.", $"Die Tastenkombination {keys} ist von einer anderen Anwendung belegt und funktioniert in Kombos nicht.");
+        public static string ShowEarlier(int count) => T($"Εμφάνιση παλαιότερων μηνυμάτων ({count})", $"Show earlier messages ({count})", $"Afficher les messages précédents ({count})", $"Frühere Nachrichten anzeigen ({count})");
         public static string Details => T("Λεπτομέρειες", "Details", "Détails", "Details");
         public static string Checking => T("Έλεγχος…", "Checking…", "Vérification…", "Prüfe…");
         public static string Downloading(int pct) => T($"Λήψη… {pct}%", $"Downloading… {pct}%", $"Téléchargement… {pct}%", $"Lade herunter… {pct}%");

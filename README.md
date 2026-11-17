@@ -42,8 +42,8 @@ tray icon με λειτουργία στο παρασκήνιο, και αυτό
 
 ### Οδηγός, οικογένεια Opsis και ενημερώσεις (v4.9.0)
 - **Οδηγός καλωσορίσματος** σε κάθε νέα μείζονα/ελάσσονα έκδοση (και από Ρυθμίσεις → Βοήθεια / εικονίδιο tray): Επόμενο/Πίσω, «Να μην εμφανιστεί ξανά», Esc/βελάκια. Όταν κλείνει, μικραίνει και πετάει μέσα στο κινούμενο εικονίδιο της εφαρμογής.
-- **Η οικογένεια Opsis**: κάρτες για τις εφαρμογές της σουίτας με κατάσταση εγκατάστασης (Εγκατεστημένο / Δεν είναι εγκατεστημένο / Διαθέσιμη ενημέρωση), Άνοιγμα, Λήψη και Λεπτομέρειες. Η λήψη ζητά πάντα επιβεβαίωση (αρχείο, μέγεθος, πηγή), επαληθεύει SHA-256 και **αρνείται** σε ασυμφωνία· ο installer δεν εκτελείται ποτέ αυτόματα.
-- **Ειδοποίηση νέας έκδοσης** (tray balloon + μήνυμα μέσα στο παράθυρο), μία φορά ανά έκδοση, με διακόπτη στις Ρυθμίσεις → Ενημερώσεις.
+- **Η οικογένεια Opsis**: κατάλογος με κάρτες για τις εφαρμογές της σουίτας (πραγματικά εικονίδια, κατάσταση εγκατάστασης, «Άνοιγμα» αν είναι εγκατεστημένη, «Λεπτομέρειες» προς τη σελίδα στο GitHub). Είναι **μόνο κατάλογος**: τίποτα δεν κατεβαίνει ή εγκαθίσταται από εδώ.
+- **Ενημέρωση του Κόμβου**: ειδοποίηση νέας έκδοσης (tray balloon + μήνυμα μέσα στο παράθυρο), μία φορά ανά έκδοση, με διακόπτη στις Ρυθμίσεις → Ενημερώσεις· το κουμπί **«Εγκατάσταση τώρα»** κατεβάζει το `KombosSetup-<έκδοση>.exe` του release, ελέγχει το SHA-256 (αρνείται αν λείπει ή δεν ταιριάζει), ξεκινά τον κανονικό installer (έγκριση διαχειριστή από τα Windows) και κλείνει την εφαρμογή. Log: `%AppData%\Kombos\logs`.
 
 #### Απόρρητο: τι δικτυακά αιτήματα γίνονται
 Καμία τηλεμετρία. Το μόνο: (1) `GET api.github.com/repos/giorstergiopoulos-design/Kombos/releases/latest` μετά από ~30 δευτ. και κάθε 24 ώρες (με ETag), (2) το πολύ μία φορά το 24ωρο το αρχείο καταλόγου `raw.githubusercontent.com/giorstergiopoulos-design/Opsis/master/suite/apps.json` (https, μόνο GitHub, έως 256 KB, επικυρώνεται), (3) όταν ανοίγεις τη βιτρίνα, το `releases/latest` κάθε εφαρμογής της σουίτας. Κάθε αίτημα αποτυγχάνει σιωπηλά αν δεν υπάρχει δίκτυο.
@@ -143,8 +143,8 @@ icon with background operation, and automated tests (DPAPI, settings/conversatio
 
 ### Guide, Opsis family and updates (v4.9.0)
 - **Welcome guide** on every new major/minor version (also from Settings → Help or the tray icon): Next/Back, "Don't show again", Esc/arrow keys. When it closes it shrinks and flies into the app's own animated icon.
-- **The Opsis family**: a card per suite app with install state (Installed / Not installed / Update available), Open, Download and Details. Downloads always ask first (file, size, source), verify SHA-256 and **refuse** on mismatch; the installer is never run automatically.
-- **New-version notice** (tray balloon + in-window toast), once per version, with a switch in Settings → Updates.
+- **The Opsis family**: a catalogue of cards for the suite apps (real icons, install state, "Open" when installed, "Details" to the GitHub page). It is **catalogue only**: nothing is downloaded or installed from here.
+- **Updating Kombos**: new-version notice (tray balloon + in-window toast), once per version, with a switch in Settings → Updates; **"Install now"** downloads the release's `KombosSetup-<version>.exe`, verifies its SHA-256 (refuses if missing or different), starts the normal installer (Windows administrator approval) and closes the app. Log: `%AppData%\Kombos\logs`.
 
 #### Privacy: what goes over the network
 No telemetry. Only: (1) `GET api.github.com/repos/giorstergiopoulos-design/Kombos/releases/latest` after ~30 s and every 24 h (ETag), (2) at most once a day the catalogue file `raw.githubusercontent.com/giorstergiopoulos-design/Opsis/master/suite/apps.json` (https, GitHub hosts only, max 256 KB, validated), (3) when you open the showcase, each suite app's `releases/latest`. Every request fails silently when offline.

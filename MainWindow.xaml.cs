@@ -374,6 +374,7 @@ namespace Kombos
 
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
+            FlushConversationSave(wait: _reallyExiting);
             if (_reallyExiting)
             {
                 _trayIcon?.Dispose();
@@ -613,6 +614,7 @@ namespace Kombos
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             RegisterGlobalHotkey();
+            NotifyHotkeyConflicts();
             StartUpdateWatcher();
             RunTestOpenHook();
 
@@ -1309,7 +1311,32 @@ namespace Kombos
         }
 
         // ---------- Πολλαπλές αποθηκευμένες συζητήσεις ----------
-        internal void SaveConversations() => ConversationStore.Save(_conversations, _conversationsSyncFolder);
+        private DispatcherTimer? _saveDebounce;
+        private bool _savePending;
+
+        /// <summary>v4.9.7: η αποθήκευση δεν γράφει πια σε κάθε αλλαγή και δεν μπλοκάρει το UI: ζητά εγγραφή που γίνεται μία φορά μετά από 700 ms
+        /// ησυχίας (σειριοποίηση compact στο UI νήμα, εγγραφή ατομική σε νήμα παρασκηνίου, μία τη φορά). Κλείσιμο/αλλαγή φακέλου/ενημέρωση
+        /// κάνουν άμεσο <see cref="FlushConversationSave"/>.</summary>
+        internal void SaveConversations()
+        {
+            _savePending = true;
+            if (_saveDebounce == null)
+            {
+                _saveDebounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
+                _saveDebounce.Tick += (s, e) => { _saveDebounce!.Stop(); FlushConversationSave(wait: false); };
+            }
+            _saveDebounce.Stop();
+            _saveDebounce.Start();
+        }
+
+        internal void FlushConversationSave(bool wait)
+        {
+            _saveDebounce?.Stop();
+            if (!_savePending) return;
+            _savePending = false;
+            var task = ConversationStore.SaveSnapshotAsync(ConversationStore.Serialize(_conversations), _conversationsSyncFolder);
+            if (wait) { try { task.Wait(TimeSpan.FromSeconds(5)); } catch { } }
+        }
         internal void SaveProjects() => ProjectsListStore.Save(_projects, _conversationsSyncFolder);
 
         /// <summary>Αλλάζει τον φάκελο συγχρονισμού συζητήσεων (Ρυθμίσεις → Project) - "συνεργασία ανάμεσα σε
@@ -1318,6 +1345,7 @@ namespace Kombos
         /// αρχείο (π.χ. από άλλο μηχάνημα), αυτό φορτώνεται - ΔΕΝ γίνεται συγχώνευση με το τρέχον.</summary>
         internal void ChangeConversationsSyncFolder(string newFolder)
         {
+            FlushConversationSave(wait: true); // τα εκκρεμή γράφονται στον ΠΑΛΙΟ φάκελο πριν αλλάξει
             _conversationsSyncFolder = newFolder;
             _conversations = ConversationStore.Load(_conversationsSyncFolder);
             _projects = ProjectsListStore.Load(_conversationsSyncFolder);
@@ -1756,11 +1784,65 @@ namespace Kombos
             // Περνάμε τα ΙΔΙΑ αντικείμενα ChatTurn που μόλις μπήκαν στο _history (όχι τα πρωτότυπα του
             // conv.History) - το κουμπί διαγραφής κάθε φούσκας κάνει _history.Remove(αναφορά), οπότε πρέπει να
             // δείχνει στο ίδιο αντικείμενο που όντως βρίσκεται μέσα στη λίστα.
-            foreach (var turn in _history)
-                AddChatBubble(turn.Role == "user", turn.Content, historyTurn: turn);
+            RenderHistoryTail();
             RestoreDraft();
 
             HistoryPopup.IsOpen = false;
+        }
+
+        // ---------- Μεγάλες συζητήσεις: εμφανίζονται μόνο τα τελευταία turns (v4.9.7), τα παλιότερα με κουμπί ----------
+        private const int ChatInitialTurns = 120;
+        private const int ChatOlderBatch = 120;
+        private ChatTurn? _renderedFirstTurn;
+        private Button? _loadOlderButton;
+
+        private void RenderHistoryTail()
+        {
+            _loadOlderButton = null;
+            int start = Math.Max(0, _history.Count - ChatInitialTurns);
+            _renderedFirstTurn = start < _history.Count ? _history[start] : null;
+            for (int i = start; i < _history.Count; i++)
+                AddChatBubble(_history[i].Role == "user", _history[i].Content, historyTurn: _history[i]);
+            UpdateLoadOlderButton();
+        }
+
+        private int RenderedFromIndex() => _renderedFirstTurn == null ? 0 : Math.Max(0, _history.IndexOf(_renderedFirstTurn));
+
+        private void UpdateLoadOlderButton()
+        {
+            if (_loadOlderButton != null) ChatLogPanel.Children.Remove(_loadOlderButton);
+            _loadOlderButton = null;
+            int from = RenderedFromIndex();
+            if (from <= 0) return;
+            _loadOlderButton = new Button
+            {
+                Content = SuiteStrings.ShowEarlier(from), Margin = new Thickness(0, 0, 0, 12), Padding = new Thickness(14, 6, 14, 6),
+                HorizontalAlignment = HorizontalAlignment.Center, FontSize = 12, Cursor = Cursors.Hand, Background = Brushes.Transparent, BorderThickness = new Thickness(1)
+            };
+            _loadOlderButton.SetResourceReference(Control.BorderBrushProperty, "LineBrush");
+            _loadOlderButton.SetResourceReference(Control.ForegroundProperty, "InkBrush");
+            _loadOlderButton.Click += (s, e) => LoadOlderTurns();
+            ChatLogPanel.Children.Insert(0, _loadOlderButton);
+        }
+
+        private void LoadOlderTurns()
+        {
+            int to = RenderedFromIndex();
+            int from = Math.Max(0, to - ChatOlderBatch);
+            var savedRow = _lastAssistantRow;
+            var savedRegenerate = _lastRegenerateButton;
+            if (_loadOlderButton != null) ChatLogPanel.Children.Remove(_loadOlderButton);
+            int before = ChatLogPanel.Children.Count;
+            for (int i = from; i < to && i < _history.Count; i++)
+                AddChatBubble(_history[i].Role == "user", _history[i].Content, historyTurn: _history[i]);
+            var added = ChatLogPanel.Children.Cast<UIElement>().Skip(before).ToList();
+            foreach (var el in added) ChatLogPanel.Children.Remove(el);
+            for (int i = 0; i < added.Count; i++) ChatLogPanel.Children.Insert(i, added[i]);   // τα παλιότερα μπαίνουν ΠΑΝΩ από τα υπάρχοντα
+            _lastAssistantRow = savedRow;                                                    // το "τελευταίο" παραμένει το πραγματικά τελευταίο
+            _lastRegenerateButton = savedRegenerate;
+            if (savedRegenerate != null) savedRegenerate.Visibility = Visibility.Visible;
+            _renderedFirstTurn = from < _history.Count ? _history[from] : null;
+            UpdateLoadOlderButton();
         }
 
         private void DeleteConversation(string conversationId)
@@ -3200,14 +3282,13 @@ namespace Kombos
         /// αρχείου (ImportFolderAsContext, ακριβό σε tokens και αργό), χτίζει/ενημερώνει τοπικά ένα ευρετήριο
         /// και στέλνει στον agent ΜΟΝΟ το δέντρο των αρχείων. Ο agent/χρήστης μετά ζητά στοχευμένα
         /// συγκεκριμένα αρχεία με /readfile - όπως ακριβώς θα διάβαζε κώδικα ένας πραγματικός συνεργάτης.</summary>
-        internal bool ImportProjectIndexAsContext(string folderPath, out string? error)
+        internal async Task<(bool Ok, string? Error)> ImportProjectIndexAsContextAsync(string folderPath)
         {
-            error = null;
             ProjectIndex index;
-            try { index = ProjectMemoryStore.BuildOrUpdateIndex(folderPath); }
-            catch (Exception ex) { error = ex.Message; return false; }
+            try { index = await ProjectMemoryStore.BuildOrUpdateIndexAsync(folderPath); }   // σε νήμα παρασκηνίου: το UI δεν παγώνει
+            catch (Exception ex) { return (false, ex.Message); }
 
-            if (index.Files.Count == 0) return false;
+            if (index.Files.Count == 0) return (false, null);
 
             _activeProjectPath = folderPath;
             SaveSettings();
@@ -3218,7 +3299,7 @@ namespace Kombos
             var importTurn = new ChatTurn { Role = "user", Content = withPrefix };
             AddChatBubble(true, withPrefix, historyTurn: importTurn);
             _history.Add(importTurn);
-            return true;
+            return (true, null);
         }
 
         /// <summary>/readfile - φέρνει στοχευμένα ΕΝΑ αρχείο του ενεργού project στη συζήτηση, αντί να έχει

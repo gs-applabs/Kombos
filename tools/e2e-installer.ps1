@@ -113,6 +113,20 @@ if ($Scenario -ne 'fresh') {
     }
 }
 
+# the newest published release is machine-wide: start it (isolated data) and keep it RUNNING while the new setup replaces it
+$oldVersion = $null
+if ($Scenario -eq 'from-latest') {
+    $oldExe = Join-Path $MachineDir 'Kombos.exe'
+    if (Test-Path $oldExe) {
+        $oldVersion = (Get-Item $oldExe).VersionInfo.ProductVersion
+        $env:KOMBOS_DATA_DIR = Join-Path $Out 'old-data'
+        $oldRunning = Start-Process -FilePath $oldExe -PassThru
+        Remove-Item Env:\KOMBOS_DATA_DIR -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 8
+        Check (-not $oldRunning.HasExited) "the old machine-wide program ($oldVersion) is running before the update"
+    }
+}
+
 # ---- 2. the new setup ------------------------------------------------------------------------------------------------------------------
 $newArgs = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART')
 if ($Scenario -eq 'fresh') { $newArgs += '/TASKS="startupicon"' }
@@ -121,6 +135,14 @@ Check ($code -eq 0) "the new setup finished (exit code $code)"
 Start-Sleep -Seconds 2
 
 $version = Expected-Version
+# the update convention the in-app updater relies on: KombosSetup-<x.y.z>.exe with the SAME version as the program inside
+Check ((Split-Path $NewSetup -Leaf) -match '^KombosSetup-\d+\.\d+\.\d+\.exe$') 'the setup file is named KombosSetup-<x.y.z>.exe (the name the in-app update looks for)'
+if ($version) { Check ((Split-Path $NewSetup -Leaf) -eq "KombosSetup-$version.exe") "the setup file name carries the program version ($version)" }
+if ($oldVersion) {
+    Check ([version]($version.Split('-')[0]) -gt [version]($oldVersion.Split('-')[0].Split('+')[0])) "the update really installed a NEWER version ($oldVersion -> $version)"
+    $leftOld = @(Get-Process Kombos -ErrorAction SilentlyContinue | Where-Object { $_.Id -eq $oldRunning.Id })
+    Check ($leftOld.Count -eq 0) 'the old running program was closed by the setup (not left holding the old files)'
+}
 Check (Test-Path (Join-Path $MachineDir 'Kombos.exe')) 'the program is in Program Files'
 if ($version) { Check (((Get-Item (Join-Path $MachineDir 'Kombos.exe')).VersionInfo.ProductVersion) -like "$version*") "the installed program is version $version" }
 Check (Reg-Key 'HKLM' $UninstallKey) 'the machine-wide uninstall entry exists (HKLM)'

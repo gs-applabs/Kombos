@@ -23,8 +23,6 @@ namespace Kombos
     {
         private static readonly HttpClient SuiteHttp = new() { Timeout = TimeSpan.FromSeconds(30) };
         private static readonly HttpClient SuiteDownloadHttp = ReleaseDownloader.CreateDownloadClient();
-        private readonly HashSet<string> _suiteDownloading = new();
-        private readonly Dictionary<string, System.Threading.CancellationTokenSource> _suiteCts = new();
 
         /// <summary>Πλήρης διαδρομή του explorer.exe από τον φάκελο Windows (όχι αναζήτηση στο PATH/τρέχοντα φάκελο).</summary>
         internal static string ExplorerExe => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
@@ -251,7 +249,6 @@ namespace Kombos
                 InstallState.UpdateAvailable => SuiteStrings.UpdateAvailable(info.InstalledVersion, latest?.Tag ?? ""),
                 _ => SuiteStrings.Installed(info.InstalledVersion)
             };
-            if (_suiteStatus.TryGetValue(app.Id, out var busy)) state = busy;
             var stateText = new TextBlock { Text = state, FontSize = 12, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 12, 0, 0) };
             stateText.SetResourceReference(TextBlock.ForegroundProperty, info?.State == InstallState.UpdateAvailable || isSelf ? "ClaudeBrush" : "InkSoftBrush");
             stack.Children.Add(stateText);
@@ -259,11 +256,6 @@ namespace Kombos
             var buttons = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
             if (info?.ExePath != null && !isSelf)
                 buttons.Children.Add(SuiteButton(SuiteStrings.Open, true, () => OpenSuiteApp(info.ExePath), SuiteStrings.Open + " " + app.Name));
-            if (_suiteDownloading.Contains(app.Id))
-                buttons.Children.Add(SuiteButton(SuiteStrings.Cancel, false, () => { if (_suiteCts.TryGetValue(app.Id, out var c)) c.Cancel(); }, SuiteStrings.Cancel + " " + app.Name));
-            else if (info != null && (info.State == InstallState.NotInstalled && !isSelf || info.State == InstallState.UpdateAvailable))
-                buttons.Children.Add(SuiteButton(info.State == InstallState.UpdateAvailable ? SuiteStrings.Update : SuiteStrings.Install, info.ExePath == null,
-                    () => _ = InstallSuiteAppAsync(app), (info.State == InstallState.UpdateAvailable ? SuiteStrings.Update : SuiteStrings.Install) + " " + app.Name));
             buttons.Children.Add(SuiteButton(SuiteStrings.Details, false, () => OpenExternalUrl(app.RepoUrl), SuiteStrings.Details + " " + app.Name));
             stack.Children.Add(buttons);
 
@@ -348,74 +340,117 @@ namespace Kombos
             try { Process.Start(new ProcessStartInfo(u.AbsoluteUri) { UseShellExecute = true }); } catch { }
         }
 
-        /// <summary>Λήψη installer: ΜΟΝΟ μετά από επιβεβαίωση (όνομα/μέγεθος/πηγή), με έλεγχο SHA-256 που ΑΠΟΡΡΙΠΤΕΙ
-        /// σε ασυμφωνία. Ο installer δεν εκτελείται ποτέ αυτόματα· αν δεν υπάρχει δημοσιευμένο hash, ανοίγει η σελίδα του release.</summary>
-        private async Task InstallSuiteAppAsync(SuiteApp app)
-        {
-            var releasePage = $"{app.RepoUrl}/releases/latest";
-            if (!_suiteDownloading.Add(app.Id)) return; // διπλό κλικ: ήδη σε εξέλιξη
-            var cts = new System.Threading.CancellationTokenSource();
-            _suiteCts[app.Id] = cts;
-            try
-            {
-                var rel = _suiteLatest.GetValueOrDefault(app.Id) ?? await ReleaseDownloader.GetLatestAsync(SuiteHttp, app.Repo);
-                var asset = rel == null ? null : ReleaseDownloader.PickInstaller(rel, app.InstallerAsset);
-                if (rel == null || asset == null) { OpenExternalUrl(releasePage); return; }
-
-                var hash = await ReleaseDownloader.ResolveExpectedHashAsync(SuiteHttp, rel, asset, app.ChecksumAsset);
-                if (hash == null)
-                {
-                    if (MessageBox.Show(this, SuiteStrings.NoChecksum, app.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                        OpenExternalUrl(rel.HtmlUrl.Length > 0 ? rel.HtmlUrl : releasePage);
-                    return;
-                }
-
-                var size = asset.Size > 0 ? $"{asset.Size / 1048576.0:0.0} MB" : "?";
-                var source = new Uri(asset.Url).Host + " / " + SuiteCatalog.Owner + "/" + app.Repo;
-                if (MessageBox.Show(this, SuiteStrings.ConfirmDownload(asset.Name, size, source), app.Name, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-                    return;
-
-                var downloads = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-                int lastPct = -1;
-                var progress = new Progress<double>(p =>
-                {
-                    int pct = (int)(p * 100);
-                    if (pct == lastPct) return; // μην ξαναζωγραφίζεις τις κάρτες σε κάθε κομμάτι δεδομένων
-                    lastPct = pct;
-                    _suiteStatus[app.Id] = SuiteStrings.Downloading(pct);
-                    if (SuiteOverlay.Visibility == Visibility.Visible) RenderSuiteCards(null);
-                });
-                string path;
-                _suiteStatus[app.Id] = SuiteStrings.Downloading(0);
-                RenderSuiteCards(null);
-                try { path = await ReleaseDownloader.DownloadVerifiedAsync(SuiteDownloadHttp, asset, hash, downloads, progress, cts.Token); }
-                catch (ChecksumMismatchException)
-                {
-                    _suiteStatus.Remove(app.Id);
-                    MessageBox.Show(this, SuiteStrings.ChecksumRefused, app.Name, MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                catch (OperationCanceledException)
-                {
-                    _suiteStatus.Remove(app.Id); // ακυρώθηκε από τον χρήστη: σιωπηλά, το .part έχει ήδη σβηστεί
-                    return;
-                }
-                _suiteStatus.Remove(app.Id);
-                MessageBox.Show(this, SuiteStrings.DownloadVerified(path), app.Name, MessageBoxButton.OK, MessageBoxImage.Information);
-                try { Process.Start(new ProcessStartInfo(ExplorerExe, $"/select,\"{path}\"") { UseShellExecute = true }); } catch { }
-            }
-            catch (Exception ex)
-            {
-                _suiteStatus.Remove(app.Id);
-                MessageBox.Show(this, SuiteStrings.DownloadFailed(ex.Message), app.Name, MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            finally { _suiteDownloading.Remove(app.Id); _suiteCts.Remove(app.Id); cts.Dispose(); _ = RefreshSuiteAsync(); }
-        }
-
         // ---------- Ειδοποίηση νέας έκδοσης ----------
         private DispatcherTimer? _updateTimer;
         private UpdateNotifier? _updateNotifier;
         private ReleaseInfo? _pendingUpdate;
+
+        /// <summary>Η "τρέχουσα" έκδοση για ενημερώσεις (δοκιμαστικά: KOMBOS_TEST_CURRENT_VERSION).</summary>
+        internal static string CurrentVersionForUpdates
+        {
+            get
+            {
+                var t = Environment.GetEnvironmentVariable("KOMBOS_TEST_CURRENT_VERSION");
+                return string.IsNullOrWhiteSpace(t) ? L.AppVersion : t;
+            }
+        }
+
+        /// <summary>Εμφανίζει το toast ενημέρωσης (από τον αυτόματο έλεγχο ή από Ρυθμίσεις → Ενημερώσεις): "Τι νέο υπάρχει" /
+        /// "Εγκατάσταση τώρα" / "Αργότερα".</summary>
+        internal void ShowUpdateToast(ReleaseInfo info)
+        {
+            _pendingUpdate = info;
+            UpdateToastText.Text = SuiteStrings.UpdateToast(info.Version);
+            UpdateToastOpenButton.Content = SuiteStrings.WhatsNew;
+            UpdateToastInstallButton.Content = SuiteStrings.InstallNow;
+            UpdateToastInstallButton.IsEnabled = true;
+            UpdateToastLaterButton.Content = SuiteStrings.Later;
+            UpdateToast.Visibility = Visibility.Visible;
+        }
+
+        private bool _updateInstalling;
+
+        /// <summary>Εγκατάσταση της ενημέρωσης end-to-end: σχέδιο (σωστό asset + SHA-256) → επιβεβαίωση χρήστη → λήψη με timeout/ακύρωση και
+        /// επαλήθευση → εκκίνηση του κανονικού installer (UAC) → έξοδος της εφαρμογής ΜΟΝΟ αν ξεκίνησε ο installer. Αν ο χρήστης πατήσει «Όχι» στο UAC
+        /// η εφαρμογή μένει ανοιχτή.</summary>
+        private async void UpdateToastInstall_Click(object sender, RoutedEventArgs e)
+        {
+            if (_updateInstalling) return;
+            _updateInstalling = true;
+            UpdateToastInstallButton.IsEnabled = false;
+            var original = UpdateToastText.Text;
+            try
+            {
+                var (plan, reason) = await UpdateInstaller.PlanAsync(SuiteHttp, CurrentVersionForUpdates);
+                if (plan == null)
+                {
+                    UpdateToastText.Text = reason == "up-to-date" ? SuiteStrings.UpdateUpToDate : SuiteStrings.UpdateFailed(reason ?? "?");
+                    if (reason != "up-to-date" && _pendingUpdate != null) OpenExternalUrl(_pendingUpdate.HtmlUrl); // τελευταία λύση: η σελίδα του release
+                    return;
+                }
+                var size = plan.Installer.Size > 0 ? $"{plan.Installer.Size / 1048576.0:0.0} MB" : "?";
+                if (MessageBox.Show(this, SuiteStrings.UpdateConfirm(plan.Version, plan.Installer.Name, size, new Uri(plan.Installer.Url).Host + " / " + SuiteCatalog.Owner + "/" + UpdateInstaller.Repo),
+                        "Kombos", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                    return;
+
+                int last = -1;
+                var progress = new Progress<double>(p =>
+                {
+                    int pct = (int)(p * 100);
+                    if (pct == last) return;
+                    last = pct;
+                    UpdateToastText.Text = SuiteStrings.UpdateDownloading(plan.Version, pct);
+                });
+                UpdateToastText.Text = SuiteStrings.UpdateDownloading(plan.Version, 0);
+                string path;
+                try
+                {
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromMinutes(30)); // συνολικό ανώτατο όριο· ξεχωριστά 60 s χωρίς δεδομένα
+                    path = await ReleaseDownloader.DownloadVerifiedAsync(SuiteDownloadHttp, plan.Installer, plan.ExpectedSha256, UpdateInstaller.UpdateDir, progress, cts.Token);
+                }
+                catch (ChecksumMismatchException)
+                {
+                    UpdateToastText.Text = original;
+                    MessageBox.Show(this, SuiteStrings.ChecksumRefused, "Kombos", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                try
+                {
+                    SaveSettings();
+                    FlushConversationSave(wait: true);
+                    Process.Start(UpdateInstaller.BuildStartInfo(path, UpdateInstaller.LogPath(plan.Version)));
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    // το UAC απορρίφθηκε (ή τα Windows μπλόκαραν το αρχείο): η εφαρμογή μένει ανοιχτή
+                    UpdateToastText.Text = SuiteStrings.UpdateLaunchCancelled;
+                    return;
+                }
+                _reallyExiting = true; // ο installer τρέχει: η εφαρμογή κλείνει ώστε να αντικατασταθούν τα αρχεία στο Program Files
+                Close();
+            }
+            catch (Exception ex)
+            {
+                UpdateToastText.Text = SuiteStrings.UpdateFailed(ex.Message);
+            }
+            finally
+            {
+                _updateInstalling = false;
+                if (UpdateToast.Visibility == Visibility.Visible) UpdateToastInstallButton.IsEnabled = true;
+            }
+        }
+
+        /// <summary>Αν οι συντομεύσεις global δεν καταχωρίστηκαν (άλλη εφαρμογή τις κρατά), ο χρήστης ενημερώνεται - όχι σιωπηλή αποτυχία (§0Β.2).</summary>
+        private void NotifyHotkeyConflicts()
+        {
+            var failed = new List<string>();
+            if (!_hotkeyRegistered) failed.Add("Ctrl+Alt+K");
+            if (!_anywhereHotkeyRegistered) failed.Add("Ctrl+Alt+Space");
+            if (failed.Count == 0) return;
+            _trayIcon?.ShowNotification("Κόμβος", SuiteStrings.HotkeyBusy(string.Join(", ", failed)));
+            TaskLabel.ToolTip = SuiteStrings.HotkeyBusy(string.Join(", ", failed));
+        }
 
         /// <summary>Πρώτος έλεγχος ~30 s μετά την εκκίνηση, μετά κάθε 24 ώρες όσο τρέχει η εφαρμογή. Δεν μπλοκάρει ποτέ.</summary>
         private void StartUpdateWatcher()
@@ -423,7 +458,7 @@ namespace Kombos
             var repo = string.IsNullOrWhiteSpace(_updateCheckRepo) ? SuiteCatalog.Owner + "/Kombos" : _updateCheckRepo.Trim();
             // Δοκιμαστικοί διακόπτες (μόνο μεταβλητές περιβάλλοντος, ποτέ UI): ψεύτικη "τρέχουσα" έκδοση και σύντομος πρώτος έλεγχος.
             var testCurrent = Environment.GetEnvironmentVariable("KOMBOS_TEST_CURRENT_VERSION");
-            _updateNotifier = new UpdateNotifier(SuiteHttp, new UpdateNoticeStore(), repo, string.IsNullOrWhiteSpace(testCurrent) ? L.AppVersion : testCurrent);
+            _updateNotifier = new UpdateNotifier(SuiteHttp, new UpdateNoticeStore(), repo, CurrentVersionForUpdates);
             _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(string.IsNullOrWhiteSpace(testCurrent) ? 30 : 3) };
             _updateTimer.Tick += async (s, e) =>
             {
@@ -431,12 +466,8 @@ namespace Kombos
                 if (!_notifyNewVersions) return;
                 var info = await _updateNotifier!.CheckAsync();
                 if (info == null) return;
-                _pendingUpdate = info;
                 _updateNotifier.MarkNotified(info.Version);
-                UpdateToastText.Text = SuiteStrings.UpdateToast(info.Version);
-                UpdateToastOpenButton.Content = SuiteStrings.WhatsNew;
-                UpdateToastLaterButton.Content = SuiteStrings.Later;
-                UpdateToast.Visibility = Visibility.Visible;
+                ShowUpdateToast(info);
                 if (!IsActive || !IsVisible)
                     _trayIcon?.ShowNotification("Κόμβος", SuiteStrings.BalloonText(info.Version), () => Dispatcher.Invoke(() => OpenExternalUrl(info.HtmlUrl)));
             };

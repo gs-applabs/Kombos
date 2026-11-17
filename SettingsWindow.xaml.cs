@@ -338,16 +338,26 @@ namespace Kombos
             else Close();
         }
 
-        private void ImportProjectIndexButton_Click(object sender, RoutedEventArgs e)
+        private bool _indexing;
+
+        private async void ImportProjectIndexButton_Click(object sender, RoutedEventArgs e)
         {
+            if (_indexing) return; // διπλό κλικ: ήδη σε εξέλιξη
             var dialog = new Microsoft.Win32.OpenFolderDialog();
             if (dialog.ShowDialog(this) != true) return;
-            if (!_owner.ImportProjectIndexAsContext(dialog.FolderName, out var error))
+            _indexing = true;
+            ImportProjectIndexButton.IsEnabled = false;
+            try
             {
-                if (error != null) MessageBox.Show(this, error, L.LinkOpenError);
-                else MessageBox.Show(this, L.ImportFolderEmpty);
+                var (ok, error) = await _owner.ImportProjectIndexAsContextAsync(dialog.FolderName);
+                if (!ok)
+                {
+                    if (error != null) MessageBox.Show(this, error, L.LinkOpenError);
+                    else MessageBox.Show(this, L.ImportFolderEmpty);
+                }
+                else { RefreshActiveProjectDisplay(); Close(); }
             }
-            else { RefreshActiveProjectDisplay(); Close(); }
+            finally { _indexing = false; ImportProjectIndexButton.IsEnabled = true; }
         }
 
         private void RefreshActiveProjectDisplay()
@@ -573,6 +583,8 @@ namespace Kombos
             {
                 UpdateResultText.Text = L.CheckUpdateAvailable(result.LatestVersion!);
                 _lastUpdateReleaseUrl = result.ReleaseUrl;
+                if (!string.IsNullOrEmpty(result.LatestVersion) && !string.IsNullOrEmpty(result.ReleaseUrl))
+                    _owner.ShowUpdateToast(new Kombos.Services.ReleaseInfo("v" + result.LatestVersion, result.LatestVersion, result.ReleaseUrl));
             }
             else
             {
