@@ -109,12 +109,14 @@ namespace Kombos.Tests
         }
 
         [Fact]
-        public void FamilyWindowIsCatalogueOnly_NoDownloadOrInstallCode()
+        public void FamilyWindow_HasDownloads_WithConfirmation_Hash_Timeout_AndNoSilentRun()
         {
             var src = File.ReadAllText(Path.Combine(RepoRoot(), "MainWindow.Suite.cs"));
-            Assert.DoesNotContain("InstallSuiteAppAsync", src);
-            Assert.DoesNotMatch(@"SuiteStrings\.Install", src);   // "InstallNow" (the Kombos self-update) is a different string
-            Assert.DoesNotContain("DownloadVerifiedAsync(SuiteDownloadHttp, asset", src);
+            Assert.Contains("InstallSuiteAppAsync", src);
+            Assert.Contains("SuiteStrings.ConfirmDownload", src);             // confirmation: file, size, source
+            Assert.Contains("DownloadVerifiedAsync(SuiteDownloadHttp, asset", src);   // SHA-256 verified, no total timeout client + stall timeout
+            Assert.Contains("_suiteDownloading.Add(app.Id)", src);            // no double download
+            Assert.DoesNotContain("Process.Start(path", src);                 // the downloaded installer is never run from here
         }
 
         [Fact]

@@ -15,15 +15,15 @@ namespace Kombos.Localization
 
         public static string SuiteTitle => T("Η οικογένεια Opsis", "The Opsis family", "La famille Opsis", "Die Opsis-Familie");
         public static string SuiteSubtitle => T(
-            "Οι εφαρμογές που φτιάχτηκαν μαζί, για Windows. Άνοιξε όποια έχεις ήδη ή δες τις υπόλοιπες στη σελίδα τους στο GitHub.",
-            "The apps built together, for Windows. Open the ones you already have or see the others on their GitHub page.",
-            "Les applications conçues ensemble pour Windows. Ouvrez celles que vous avez déjà ou découvrez les autres sur leur page GitHub.",
-            "Die zusammen entwickelten Apps für Windows. Öffne die bereits installierten oder sieh dir die übrigen auf ihrer GitHub-Seite an.");
+            "Οι εφαρμογές που φτιάχτηκαν μαζί, για Windows. Άνοιξε όποια έχεις ήδη ή κατέβασε τις υπόλοιπες από το GitHub.",
+            "The apps built together, for Windows. Open the ones you already have or download the rest from GitHub.",
+            "Les applications conçues ensemble pour Windows. Ouvrez celles que vous avez déjà ou téléchargez les autres depuis GitHub.",
+            "Die zusammen entwickelten Apps für Windows. Öffne die bereits installierten oder lade die übrigen von GitHub.");
         public static string SuiteFooter => T(
-            "Αυτός είναι μόνο κατάλογος: η λίστα ανανεώνεται το πολύ μία φορά την ημέρα από το GitHub και τίποτα δεν κατεβαίνει ή εγκαθίσταται από εδώ· το «Λεπτομέρειες» ανοίγει τη σελίδα της εφαρμογής.",
-            "This is a catalogue only: the list refreshes at most once a day from GitHub and nothing is downloaded or installed from here; \"Details\" opens the app's page.",
-            "Ceci n'est qu'un catalogue : la liste est actualisée au plus une fois par jour depuis GitHub et rien n'est téléchargé ni installé d'ici ; « Détails » ouvre la page de l'application.",
-            "Dies ist nur ein Katalog: Die Liste wird höchstens einmal täglich von GitHub aktualisiert, von hier wird nichts geladen oder installiert; „Details“ öffnet die Seite der App.");
+            "Η λίστα ανανεώνεται το πολύ μία φορά την ημέρα από το GitHub. Η εγκατάσταση δεν ξεκινά ποτέ αυτόματα· κάθε λήψη ζητά επιβεβαίωση και ελέγχεται με SHA-256.",
+            "The list refreshes at most once a day from GitHub. Nothing is ever installed automatically; every download asks first and is verified with SHA-256.",
+            "La liste est actualisée au plus une fois par jour depuis GitHub. Rien n'est installé automatiquement ; chaque téléchargement demande confirmation et est vérifié par SHA-256.",
+            "Die Liste wird höchstens einmal täglich von GitHub aktualisiert. Nichts wird automatisch installiert; jeder Download fragt nach und wird per SHA-256 geprüft.");
         public static string SuiteClose => T("Κλείσιμο", "Close", "Fermer", "Schließen");
         public static string YouAreHere => T("Βρίσκεσαι εδώ", "You are here", "Vous êtes ici", "Du bist hier");
         public static string NotInstalled => T("Δεν είναι εγκατεστημένο", "Not installed", "Non installé", "Nicht installiert");
