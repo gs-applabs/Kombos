@@ -20,9 +20,9 @@ namespace Kombos.Tests
         private static string ReleaseJson(string tag, params (string name, string digest)[] assets)
         {
             var list = string.Join(",", assets.Select(a =>
-                $"{{\"name\":\"{a.name}\",\"size\":1000,\"browser_download_url\":\"https://github.com/giorstergiopoulos-design/Kombos/releases/download/{tag}/{a.name}\"" +
+                $"{{\"name\":\"{a.name}\",\"size\":1000,\"browser_download_url\":\"https://github.com/gs-applabs/Kombos/releases/download/{tag}/{a.name}\"" +
                 (a.digest != null ? $",\"digest\":\"sha256:{a.digest}\"" : "") + "}"));
-            return $"{{\"tag_name\":\"{tag}\",\"html_url\":\"https://github.com/giorstergiopoulos-design/Kombos/releases/tag/{tag}\",\"assets\":[{list}]}}";
+            return $"{{\"tag_name\":\"{tag}\",\"html_url\":\"https://github.com/gs-applabs/Kombos/releases/tag/{tag}\",\"assets\":[{list}]}}";
         }
 
         private static HttpClient Client(string json) =>

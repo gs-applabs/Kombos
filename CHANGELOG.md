@@ -4,6 +4,18 @@ All notable changes to Kombos, summarized here for GitHub. The full changelog - 
 languages (Greek, English, French, German) - is always available inside the app itself, via the Help panel's
 "Version history" tab.
 
+## v4.9.8 — Security hardening and account rename
+
+**Gateway ("Kombos Gateway")**: requests carrying an `Origin` header (i.e. coming from a web page) are rejected with 403, a `Content-Type` other than `application/json` gets 415 (closes the CORS "simple request" hole), malformed JSON returns 400 instead of 500. New `GatewayServer.CheckRequestSafety`; the existing body limit (413) and concurrency limit (503) are kept. No bearer token was added (open decision).
+
+**Nexus Marketplace / plugins**: only `https://github.com/owner/repo` (or `www.github.com`) is accepted, owner/repo must match `^[A-Za-z0-9._-]{1,100}$`, 2-minute timeout, 100 MB download limit (`DownloadLimitedAsync`), extraction into a sub-folder with guaranteed cleanup. New `PluginLoader.ResolveUnder` blocks path traversal on install/uninstall of plugin folders.
+
+**CI**: `windows-ci.yml` now runs with `permissions: contents: read`.
+
+**Rename**: the GitHub account `giorstergiopoulos-design` is now `gs-applabs` (update/catalogue URLs, RepositoryUrl, Company/Publisher/Copyright, README, installer, LICENSE). Trusted-owner checks accept both names. Earlier history below is unchanged.
+
+**Tests**: `GatewaySafetyTests`, `PluginMarketplaceTests`, legacy-owner catalogue test.
+
 ## v4.9.7 — In-app update that installs, performance, dark installer, catalogue-only family
 
 **Update really installs (found: the update was only announced, never installed)**: the toast / Settings → Updates now has **Install now**. It picks exactly `KombosSetup-<new version>.exe` from the latest release, requires a SHA-256 (the `.sha256` asset or GitHub's digest; no hash → no download), downloads with a 60 s no-data timeout and verification, starts the normal installer (UAC, same AppId → upgrade in Program Files, log in `%AppData%\Kombos\logs`) and then closes the app. If UAC is declined the app stays open. It never installs an older, equal or pre-release version. The installer is started by the app and is never killed by process tree (lesson from GearWin 6.9.9: a `/T` kill would take the setup down with the app); the old running copy is closed by Inno's Restart Manager (`CloseApplications`).

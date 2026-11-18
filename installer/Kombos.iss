@@ -15,9 +15,9 @@
 
 #define MyAppName "Κόμβος"
 #define MyAppNameAscii "Kombos"
-#define MyAppVersion "4.9.7"
-#define MyAppPublisher "giorstergiopoulos-design"
-#define MyAppURL "https://github.com/giorstergiopoulos-design/Kombos"
+#define MyAppVersion "4.9.8"
+#define MyAppPublisher "gs-applabs"
+#define MyAppURL "https://github.com/gs-applabs/Kombos"
 #define MyAppExeName "Kombos.exe"
 #define MyPublishDir "..\publish"
 
@@ -34,7 +34,7 @@ VersionInfoProductVersion={#MyAppVersion}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Kombos Setup
 VersionInfoProductName=Kombos
-VersionInfoCopyright=Copyright (c) 2026 giorstergiopoulos-design
+VersionInfoCopyright=Copyright (c) 2026 gs-applabs
 DefaultDirName={autopf}\{#MyAppNameAscii}
 DefaultGroupName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}

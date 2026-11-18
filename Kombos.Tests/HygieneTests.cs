@@ -13,7 +13,7 @@ namespace Kombos.Tests
     /// μέσα στα binaries και στα tracked αρχεία, καμία κρυφή PowerShell, Inno Setup 7 guard και ενιαίος εκδότης στον installer.</summary>
     public class HygieneTests
     {
-        private const string Publisher = "giorstergiopoulos-design";
+        private const string Publisher = "gs-applabs";
 
         // ίδιος κατάλογος με το trace scan του security-scan workflow
         private static readonly string[] Traces = { @"C:\Users\", @"C:\w\", @"D:\a\", "gstrj", "LOGISTIRIO", "giorstergiopoulos@gmail", "/Users/" };
@@ -79,7 +79,7 @@ namespace Kombos.Tests
                 Assert.Equal(Publisher, vi.CompanyName);
                 Assert.Equal("Kombos", vi.ProductName);
                 Assert.False(string.IsNullOrWhiteSpace(vi.FileDescription), name + " has no description");
-                Assert.Contains("giorstergiopoulos-design", vi.LegalCopyright);
+                Assert.Contains("gs-applabs", vi.LegalCopyright);
                 checkedAny = true;
             }
             Assert.True(checkedAny);

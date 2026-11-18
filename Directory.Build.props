@@ -18,12 +18,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Company>giorstergiopoulos-design</Company>
-    <Authors>giorstergiopoulos-design</Authors>
+    <Company>gs-applabs</Company>
+    <Authors>gs-applabs</Authors>
     <Product>Kombos</Product>
     <Description>Kombos - a local Windows hub for AI tools, with Claude as the agent that ties them together.</Description>
-    <Copyright>Copyright (c) 2026 giorstergiopoulos-design</Copyright>
-    <RepositoryUrl>https://github.com/giorstergiopoulos-design/Kombos</RepositoryUrl>
+    <Copyright>Copyright (c) 2026 gs-applabs</Copyright>
+    <RepositoryUrl>https://github.com/gs-applabs/Kombos</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

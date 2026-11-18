@@ -129,7 +129,7 @@ namespace Kombos.Tests
         public SuiteCatalogTests() => Directory.CreateDirectory(_dir);
         public void Dispose() { try { Directory.Delete(_dir, true); } catch { } }
 
-        private static string Json(string owner = "giorstergiopoulos-design", string repo = "Opsis", string rx = "^A\\.exe$", string extra = "") =>
+        private static string Json(string owner = "gs-applabs", string repo = "Opsis", string rx = "^A\\.exe$", string extra = "") =>
             "{\"schema\":1,\"owner\":\"" + owner + "\",\"unknownTop\":1,\"apps\":[{\"id\":\"opsis\",\"name\":\"Opsis\",\"repo\":\"" + repo + "\",\"installerAsset\":\"" + rx.Replace("\\", "\\\\") +
             "\",\"uninstallDisplayName\":\"Opsis\",\"paths\":[\"%X%\\\\a.exe\"],\"futureField\":true," +
             "\"tagline\":{\"en\":\"t\"},\"capabilities\":{\"en\":[\"a\",\"b\"]}" + extra + "}]}";
@@ -151,10 +151,14 @@ namespace Kombos.Tests
             Assert.Equal("t", c!.Apps[0].TaglineFor("fr"));          // fallback στα αγγλικά
         }
 
+        [Fact]
+        public void AcceptsLegacyOwnerName() =>
+            Assert.NotNull(SuiteCatalog.TryParse(Encoding.UTF8.GetBytes(Json("giorstergiopoulos-design")), out _));
+
         [Theory]
         [InlineData("evil-owner", "Opsis", "^A$")]
-        [InlineData("giorstergiopoulos-design", "../etc", "^A$")]
-        [InlineData("giorstergiopoulos-design", "Opsis", "([")]     // μη έγκυρο regex
+        [InlineData("gs-applabs", "../etc", "^A$")]
+        [InlineData("gs-applabs", "Opsis", "([")]     // μη έγκυρο regex
         public void RejectsBadData(string owner, string repo, string rx) =>
             Assert.Null(SuiteCatalog.TryParse(Encoding.UTF8.GetBytes(Json(owner, repo, rx)), out _));
 

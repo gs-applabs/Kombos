@@ -46,7 +46,7 @@ tray icon με λειτουργία στο παρασκήνιο, και αυτό
 - **Ενημέρωση του Κόμβου**: ειδοποίηση νέας έκδοσης (tray balloon + μήνυμα μέσα στο παράθυρο), μία φορά ανά έκδοση, με διακόπτη στις Ρυθμίσεις → Ενημερώσεις· το κουμπί **«Εγκατάσταση τώρα»** κατεβάζει το `KombosSetup-<έκδοση>.exe` του release, ελέγχει το SHA-256 (αρνείται αν λείπει ή δεν ταιριάζει), ξεκινά τον κανονικό installer (έγκριση διαχειριστή από τα Windows) και κλείνει την εφαρμογή. Log: `%AppData%\Kombos\logs`.
 
 #### Απόρρητο: τι δικτυακά αιτήματα γίνονται
-Καμία τηλεμετρία. Το μόνο: (1) `GET api.github.com/repos/giorstergiopoulos-design/Kombos/releases/latest` μετά από ~30 δευτ. και κάθε 24 ώρες (με ETag), (2) το πολύ μία φορά το 24ωρο το αρχείο καταλόγου `raw.githubusercontent.com/giorstergiopoulos-design/Opsis/master/suite/apps.json` (https, μόνο GitHub, έως 256 KB, επικυρώνεται), (3) όταν ανοίγεις τη βιτρίνα, το `releases/latest` κάθε εφαρμογής της σουίτας. Κάθε αίτημα αποτυγχάνει σιωπηλά αν δεν υπάρχει δίκτυο.
+Καμία τηλεμετρία. Το μόνο: (1) `GET api.github.com/repos/gs-applabs/Kombos/releases/latest` μετά από ~30 δευτ. και κάθε 24 ώρες (με ETag), (2) το πολύ μία φορά το 24ωρο το αρχείο καταλόγου `raw.githubusercontent.com/gs-applabs/Opsis/master/suite/apps.json` (https, μόνο GitHub, έως 256 KB, επικυρώνεται), (3) όταν ανοίγεις τη βιτρίνα, το `releases/latest` κάθε εφαρμογής της σουίτας. Κάθε αίτημα αποτυγχάνει σιωπηλά αν δεν υπάρχει δίκτυο.
 
 ### Στιγμιότυπα οθόνης / Screenshots
 
@@ -147,7 +147,7 @@ icon with background operation, and automated tests (DPAPI, settings/conversatio
 - **Updating Kombos**: new-version notice (tray balloon + in-window toast), once per version, with a switch in Settings → Updates; **"Install now"** downloads the release's `KombosSetup-<version>.exe`, verifies its SHA-256 (refuses if missing or different), starts the normal installer (Windows administrator approval) and closes the app. Log: `%AppData%\Kombos\logs`.
 
 #### Privacy: what goes over the network
-No telemetry. Only: (1) `GET api.github.com/repos/giorstergiopoulos-design/Kombos/releases/latest` after ~30 s and every 24 h (ETag), (2) at most once a day the catalogue file `raw.githubusercontent.com/giorstergiopoulos-design/Opsis/master/suite/apps.json` (https, GitHub hosts only, max 256 KB, validated), (3) when you open the showcase, each suite app's `releases/latest`. Every request fails silently when offline.
+No telemetry. Only: (1) `GET api.github.com/repos/gs-applabs/Kombos/releases/latest` after ~30 s and every 24 h (ETag), (2) at most once a day the catalogue file `raw.githubusercontent.com/gs-applabs/Opsis/master/suite/apps.json` (https, GitHub hosts only, max 256 KB, validated), (3) when you open the showcase, each suite app's `releases/latest`. Every request fails silently when offline.
 
 ### Screenshots
 
@@ -200,9 +200,9 @@ example. The full change history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Άδεια / License
 
-Το Kombos διατίθεται με άδεια **MIT** — δες το αρχείο [LICENSE](LICENSE). Copyright (c) 2026 giorstergiopoulos-design.
+Το Kombos διατίθεται με άδεια **MIT** — δες το αρχείο [LICENSE](LICENSE). Copyright (c) 2026 gs-applabs.
 
-*Kombos is released under the **MIT License** — see [LICENSE](LICENSE). Copyright (c) 2026 giorstergiopoulos-design.*
+*Kombos is released under the **MIT License** — see [LICENSE](LICENSE). Copyright (c) 2026 gs-applabs.*
 
 Τα κλειδιά API που εισάγεις χρησιμοποιούνται με δική σου ευθύνη· κάθε χρέωση γίνεται στον δικό σου
 λογαριασμό στον αντίστοιχο πάροχο. Τα εργαλεία/agents τρίτων που εμφανίζονται στον κατάλογο δεν ανήκουν

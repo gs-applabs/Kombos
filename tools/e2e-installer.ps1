@@ -9,7 +9,7 @@
 param(
     [Parameter(Mandatory)][ValidateSet('fresh', 'from-per-user', 'from-latest')][string]$Scenario,
     [Parameter(Mandatory)][string]$NewSetup,
-    [string]$Repository = 'giorstergiopoulos-design/Kombos',
+    [string]$Repository = 'gs-applabs/Kombos',
     [string]$PerUserTag = 'v4.9.1',
     [string]$Out = (Join-Path ([IO.Path]::GetTempPath()) 'kombos-e2e'),
     [switch]$IAmADisposableMachine

@@ -25,9 +25,13 @@ namespace Kombos.Services
 
     public record SuiteCatalog(IReadOnlyList<SuiteApp> Apps)
     {
-        public const string Owner = "giorstergiopoulos-design";
+        public const string Owner = "gs-applabs";
+        /// <summary>Παλιό όνομα λογαριασμού (πριν το 4.9.8)· οι έλεγχοι trusted-URL δέχονται ΚΑΙ τα δύο.</summary>
+        public const string LegacyOwner = "giorstergiopoulos-design";
+        public static bool IsTrustedOwner(string? o) =>
+            string.Equals(o, Owner, StringComparison.OrdinalIgnoreCase) || string.Equals(o, LegacyOwner, StringComparison.OrdinalIgnoreCase);
         public const long MaxBytes = 256 * 1024;
-        public const string LiveUrl = "https://raw.githubusercontent.com/giorstergiopoulos-design/Opsis/master/suite/apps.json";
+        public const string LiveUrl = "https://raw.githubusercontent.com/gs-applabs/Opsis/master/suite/apps.json";
 
         private static readonly Regex IdRx = new("^[a-z0-9_-]{1,32}$", RegexOptions.Compiled);
         private static readonly Regex RepoRx = new("^[A-Za-z0-9._-]{1,100}$", RegexOptions.Compiled);
@@ -50,7 +54,7 @@ namespace Kombos.Services
                 var root = doc.RootElement;
                 if (root.ValueKind != JsonValueKind.Object) { error = "not-object"; return null; }
                 if (!root.TryGetProperty("schema", out var sch) || sch.ValueKind != JsonValueKind.Number || sch.GetInt32() != 1) { error = "schema"; return null; }
-                if (root.TryGetProperty("owner", out var ow) && ow.GetString() != Owner) { error = "owner"; return null; }
+                if (root.TryGetProperty("owner", out var ow) && !IsTrustedOwner(ow.GetString())) { error = "owner"; return null; }
                 if (!root.TryGetProperty("apps", out var arr) || arr.ValueKind != JsonValueKind.Array || arr.GetArrayLength() is 0 or > 40) { error = "apps"; return null; }
 
                 var apps = new List<SuiteApp>();
