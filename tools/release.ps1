@@ -1,6 +1,6 @@
 # Builds the Kombos setup the same way on a developer PC and on a CI runner:
 #   dotnet publish (framework-dependent, win-x64) -> Inno Setup (installer\Kombos.iss) -> installer\output\KombosSetup-<version>.exe + .sha256
-# Needs the .NET 10 SDK and Inno Setup (ISCC.exe) - on a runner see tools\ci-install-inno.ps1.
+# Needs the .NET 11 SDK and Inno Setup (ISCC.exe) - on a runner see tools\ci-install-inno.ps1.
 param(
     [string]$Iscc = ''
 )
