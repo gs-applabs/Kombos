@@ -4,6 +4,10 @@ All notable changes to Kombos, summarized here for GitHub. The full changelog - 
 languages (Greek, English, French, German) - is always available inside the app itself, via the Help panel's
 "Version history" tab.
 
+## v4.9.9 — Migration to .NET 11
+
+**Runtime**: Kombos (and the bundled plugin projects) now target `net11.0-windows` and require the **.NET 11 Desktop Runtime** (framework-dependent installer). Build SDK pinned via `global.json` (11.0.100); CI uses `dotnet-version: 11.0.x`; `System.Speech` 11.0.0; the plugin scaffolder now generates `net11.0-windows` projects. No functional changes.
+
 ## v4.9.8 — Security hardening and account rename
 
 **Gateway ("Kombos Gateway")**: requests carrying an `Origin` header (i.e. coming from a web page) are rejected with 403, a `Content-Type` other than `application/json` gets 415 (closes the CORS "simple request" hole), malformed JSON returns 400 instead of 500. New `GatewayServer.CheckRequestSafety`; the existing body limit (413) and concurrency limit (503) are kept. No bearer token was added (open decision).
