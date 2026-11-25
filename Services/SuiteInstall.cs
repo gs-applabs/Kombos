@@ -81,6 +81,9 @@ namespace Kombos.Services
                 var candidate = Path.Combine(loc, Path.GetFileName(app.Paths[0]));
                 if (probe.FileExists(candidate)) exe = candidate;
             }
+            // Opsis is detected by its Opsis.exe ONLY: an uninstall entry without that file (stale entry, plugin, other Opsis product)
+            // must not report the host as installed.
+            if (app.Id == "opsis" && exe == null) return new InstallInfo(InstallState.NotInstalled, null, null);
             if (entry == null && exe == null) return new InstallInfo(InstallState.NotInstalled, null, null);
 
             var version = entry?.DisplayVersion;
