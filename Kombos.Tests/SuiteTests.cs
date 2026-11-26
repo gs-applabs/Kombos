@@ -219,6 +219,22 @@ namespace Kombos.Tests
             new("wf", "Waveframe", "waveframe", "^x$", null, display, alias ?? Array.Empty<string>(), new[] { @"%PF%\Waveframe\Waveframe.exe" },
                 new() { ["en"] = "t" }, new() { ["en"] = new[] { "a" } });
 
+        [Fact]
+        public void Opsis_IsDetectedByOpsisExeOnly()
+        {
+            var opsis = new SuiteApp("opsis", "Opsis", "Opsis", "^x$", null, "Opsis - Desktop Customization", Array.Empty<string>(),
+                new[] { @"%PF%\Opsis - Desktop Customization\Opsis.exe" }, new() { ["en"] = "t" }, new() { ["en"] = new[] { "a" } });
+            var stale = new FakeProbe();
+            stale.Entries.Add(new UninstallEntry("Opsis - Desktop Customization", "2.6.0", @"C:\Gone"));
+            Assert.Equal(InstallState.NotInstalled, InstallDetector.Detect(opsis, stale, null).State);
+            var other = new FakeProbe();
+            other.Entries.Add(new UninstallEntry("Opsis News Crawler", "0.14.3", null));
+            Assert.Equal(InstallState.NotInstalled, InstallDetector.Detect(opsis, other, null).State);
+            var ok = new FakeProbe();
+            ok.Files.Add(@"C:\PF\Opsis - Desktop Customization\Opsis.exe");
+            Assert.Equal(InstallState.Installed, InstallDetector.Detect(opsis, ok, null).State);
+        }
+
         [Fact] public void NotInstalled_WhenNothingFound() =>
             Assert.Equal(InstallState.NotInstalled, InstallDetector.Detect(App(), new FakeProbe(), "v1.0.0").State);
 
