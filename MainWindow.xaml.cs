@@ -2667,7 +2667,8 @@ namespace Kombos
         internal void OpenUrl(string? url)
         {
             if (string.IsNullOrWhiteSpace(url)) return;
-            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+            if (!Kombos.Services.UrlSafety.IsSafeWebUrl(url)) { MessageBox.Show(this, url, L.LinkOpenError); return; }
+            try { Process.Start(new ProcessStartInfo(url!.Trim()) { UseShellExecute = true }); }
             catch (Exception ex) { MessageBox.Show(this, ex.Message, L.LinkOpenError); }
         }
 

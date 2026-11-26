@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -47,6 +48,9 @@ namespace Kombos.Services
                 var zipPath = Path.Combine(tempDir, "repo.zip");
                 await File.WriteAllBytesAsync(zipPath, zipBytes);
                 // Το ExtractToDirectory του .NET απορρίπτει εγγραφές που βγαίνουν εκτός φακέλου προορισμού (zip-slip).
+                // Zip-bomb guard: a 100 MB zip may expand to many GB, so cap the declared uncompressed size and the entry count first.
+                using (var zip = ZipFile.OpenRead(zipPath))
+                    CheckZipLimits(zip.Entries.Count, zip.Entries.Sum(e => e.Length));
                 ZipFile.ExtractToDirectory(zipPath, Path.Combine(tempDir, "x"));
 
                 var dlls = Directory.GetFiles(Path.Combine(tempDir, "x"), "*.dll", SearchOption.AllDirectories);
@@ -60,6 +64,15 @@ namespace Kombos.Services
             {
                 try { Directory.Delete(tempDir, recursive: true); } catch { /* καθαρισμός best-effort */ }
             }
+        }
+
+        public const long MaxUncompressedBytes = 500L * 1024 * 1024;
+        public const int MaxEntries = 20000;
+
+        public static void CheckZipLimits(int entryCount, long uncompressedBytes)
+        {
+            if (entryCount > MaxEntries || uncompressedBytes > MaxUncompressedBytes)
+                throw new InvalidOperationException("Το αρχείο ZIP ξεπερνά τα όρια αποσυμπίεσης (500 MB / 20000 αρχεία).");
         }
 
         /// <summary>Κατεβάζει το URL με όριο <see cref="MaxZipBytes"/> (πρώτα από την κεφαλίδα Content-Length, μετά με μέτρηση ροής).</summary>

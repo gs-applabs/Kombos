@@ -8,6 +8,8 @@ languages (Greek, English, French, German) - is always available inside the app 
 
 **Runtime**: Kombos (and the bundled plugin projects) now target `net11.0-windows` and require the **.NET 11 Desktop Runtime** (framework-dependent installer). Build SDK pinned via `global.json` (11.0.100); CI uses `dotnet-version: 11.0.x`; `System.Speech` 11.0.0; the plugin scaffolder now generates `net11.0-windows` projects. No functional changes.
 
+**Security (review before release)**: links opened from tool/plugin data are limited to http/https (no file:, ms-msdt:, search-ms: or other protocol handlers); the plugin marketplace now rejects zips that would expand beyond 500 MB or 20000 entries (zip bomb) before extracting. Suite: Opsis is detected by Opsis.exe only. Unit tests added (155 total).
+
 **Docs**: the in-app "Version history" now has a v4.9.9 entry in all 4 languages (it states that the .NET 11 Desktop Runtime is required); README version badge corrected (v4.9.2 -> v4.9.9) and the Desktop Runtime download link now points to .NET 11.
 
 ## v4.9.8 — Security hardening and account rename
