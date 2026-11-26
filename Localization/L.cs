@@ -1248,6 +1248,7 @@ namespace Kombos.Localization
         public static string VersionHistoryText => Current switch
         {
             Lang.EL =>
+                "v4.9.9 — <b>Μετάβαση σε .NET 11</b>: το Kombos και τα plugin projects στοχεύουν πλέον net11.0-windows· απαιτείται το <b>.NET 11 Desktop Runtime</b> (ο installer δεν το περιλαμβάνει). Καμία αλλαγή λειτουργικότητας.\n" +
                 "v4.8.0 — <b>Αναδίπλωση πλευρικού μενού, όπως στο MotionDeskTop</b>: η \"αναπτυγμένη\" " +
                 "κατάσταση (προεπιλογή) δείχνει τώρα εικονίδιο+ετικέτα σε κάθε κουμπί (Θέμα/Γλώσσα/Εμφάνιση/" +
                 "Artifacts/Projects/Ρυθμίσεις), όχι μόνο γυμνά εικονίδια - η \"διπλωμένη\" κατάσταση παραμένει " +
@@ -1484,6 +1485,7 @@ namespace Kombos.Localization
                 "v1.0.0 — Πρώτη πλήρης έκδοση: build/run επιβεβαιωμένο σε Windows, εικονίδιο εφαρμογής, tabs κατηγοριών με πραγματική " +
                 "εναλλαγή περιεχομένου, μενού agents/login στο \"C\" με αποθήκευση κλειδιών ανά εργαλείο.",
             Lang.EN =>
+                "v4.9.9 — <b>Migration to .NET 11</b>: Kombos and the plugin projects now target net11.0-windows; the <b>.NET 11 Desktop Runtime</b> is required (not bundled in the installer). No functional changes.\n" +
                 "v4.8.0 — <b>Sidebar collapse, MotionDeskTop-style</b>: the \"expanded\" state (default) now " +
                 "shows an icon+label on every button (Theme/Language/Appearance/Artifacts/Projects/Settings) " +
                 "instead of bare icons - the \"collapsed\" state stays the familiar narrow icon-only rail. The " +
@@ -1697,6 +1699,7 @@ namespace Kombos.Localization
                 "v1.0.0 — First complete release: confirmed build/run on Windows, app icon, category tabs with real content " +
                 "switching, agent/login menu on \"C\" with per-tool key storage.",
             Lang.FR =>
+                "v4.9.9 — <b>Migration vers .NET 11</b> : Kombos et les projets de plugins ciblent désormais net11.0-windows ; le <b>.NET 11 Desktop Runtime</b> est requis (non inclus dans l’installateur). Aucun changement fonctionnel.\n" +
                 "v4.6.0 — Passerelle Kombos (demande explicite après la v4.5.0 « finale » - une exception, " +
                 "pas un dérapage de périmètre) : une nouvelle passerelle HTTP locale, inspirée du projet " +
                 "open-source OmniRoute (github.com/diegosouzapw/OmniRoute, MIT) - un endpoint compatible " +
@@ -1922,6 +1925,7 @@ namespace Kombos.Localization
                 "v1.0.0 — Première version complète : build/exécution confirmés sous Windows, icône de l'application, onglets de " +
                 "catégorie avec changement de contenu réel, menu agents/connexion sur « C » avec clés par outil.",
             _ =>
+                "v4.9.9 — <b>Umstellung auf .NET 11</b>: Kombos und die Plugin-Projekte zielen jetzt auf net11.0-windows; die <b>.NET 11 Desktop Runtime</b> wird benötigt (nicht im Installer enthalten). Keine funktionalen Änderungen.\n" +
                 "v4.6.0 — Kombos-Gateway (eine ausdrückliche Anfrage nach der \"finalen\" v4.5.0 - eine " +
                 "Ausnahme, kein Scope Creep): ein neues lokales HTTP-Gateway, inspiriert vom Open-Source-" +
                 "Projekt OmniRoute (github.com/diegosouzapw/OmniRoute, MIT) - ein OpenAI-kompatibler " +
