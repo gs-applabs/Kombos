@@ -1,3 +1,32 @@
+<p align="center"><img src="https://raw.githubusercontent.com/gs-applabs/gs-applabs/main/assets/projects/kombos.svg" width="100%" alt="Kombos — Your AI workspace"/></p>
+
+<p align="center"><strong>Connect AI agents, organize projects and discover tools from a local Windows hub.</strong><br/>Όλα τα εργαλεία AI, σε έναν κόμβο.</p>
+
+<p align="center"><a href="https://github.com/gs-applabs/Kombos/releases/download/v4.9.9/KombosSetup-4.9.9.exe"><img alt="Download v4.9.9" src="https://img.shields.io/badge/DOWNLOAD-v4.9.9-087EA4?style=for-the-badge"/></a> <a href="https://github.com/gs-applabs/Kombos/releases/latest"><img alt="Release notes" src="https://img.shields.io/badge/RELEASE-NOTES-334155?style=for-the-badge"/></a></p>
+
+<p align="center"><a href="#at-a-glance--με-μια-ματιά">Overview / Επισκόπηση</a> · <a href="#full-documentation--αναλυτική-τεκμηρίωση">Full documentation / Τεκμηρίωση</a> · <a href="https://github.com/gs-applabs/Kombos/issues">Support / Υποστήριξη</a> · <a href="https://github.com/gs-applabs">GS App Labs</a></p>
+
+## At a glance / Με μια ματιά
+
+| | What you can do / Τι μπορείς να κάνεις |
+|---|---|
+| **Agents / Βοηθοί** | Multi-agent chat, comparison and handoff / Συνομιλία και συνεργασία agents |
+| **Workflows / Ροές** | Projects, prompts, plugins and local gateway / Projects, prompts και επεκτάσεις |
+| **Control / Έλεγχος** | Local API-key storage and configurable providers / Τοπική αποθήκευση κλειδιών και επιλογή παρόχων |
+
+### Get started / Ξεκίνημα
+
+- **Installer:** [KombosSetup-4.9.9.exe](https://github.com/gs-applabs/Kombos/releases/download/v4.9.9/KombosSetup-4.9.9.exe) · [SHA-256](https://github.com/gs-applabs/Kombos/releases/download/v4.9.9/KombosSetup-4.9.9.exe.sha256)
+- **Requirements / Απαιτήσεις:** Windows · .NET 11 Desktop Runtime · provider credentials for online services.
+- **What's new / Νέα έκδοση:** Migration to .NET 11 and plugin/link security hardening. / Μετάβαση σε .NET 11 και ενίσχυση ασφάλειας.
+- **Known limits / Όρια:** Online AI providers require their own credentials and may charge fees. Physical Windows and live provider integrations are not universally verified. / Οι πάροχοι μπορεί να χρεώνουν και δεν έχουν επαληθευτεί όλες οι διασυνδέσεις.
+
+See the [published release](https://github.com/gs-applabs/Kombos/releases/tag/v4.9.9) for verification details. Review installation prompts and compare the checksum before running the installer. / Δείτε τις σημειώσεις έκδοσης και επαληθεύστε το SHA-256 πριν από την εγκατάσταση.
+
+---
+
+## Full documentation / Αναλυτική τεκμηρίωση
+
 <p align="center"><img src="docs/img/icon.png" alt="Kombos" width="120"/></p>
 
 <h1 align="center">Κόμβος (Kombos)</h1>
