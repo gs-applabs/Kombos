@@ -1,5 +1,9 @@
 <p align="center"><img src="https://raw.githubusercontent.com/gs-applabs/gs-applabs/main/assets/projects/kombos.svg" width="100%" alt="Kombos — Your AI workspace"/></p>
 
+<p align="center"><a href="https://github.com/gs-applabs/Kombos/releases/latest"><img alt="Latest published release" src="https://img.shields.io/github/v/release/gs-applabs/Kombos?label=release"/></a> <a href="https://github.com/gs-applabs/Kombos/releases"><img alt="All release asset downloads, not unique users" src="https://img.shields.io/github/downloads/gs-applabs/Kombos/total?label=asset%20downloads"/></a> <a href="https://github.com/gs-applabs/Kombos/actions/workflows/windows-ci.yml"><img alt="CI workflow status" src="https://github.com/gs-applabs/Kombos/actions/workflows/windows-ci.yml/badge.svg"/></a> <a href="https://github.com/gs-applabs/Kombos/actions/workflows/product-snapshots.yml"><img alt="Screenshot workflow status" src="https://github.com/gs-applabs/Kombos/actions/workflows/product-snapshots.yml/badge.svg"/></a></p>
+
+<p align="center"><a href="docs/GS-APP-LABS-FAQ.md">FAQ / Συχνές ερωτήσεις</a> · <a href="https://github.com/gs-applabs/Kombos/issues/new/choose">Feedback / Προτάσεις</a></p>
+
 <p align="center"><strong>Connect AI agents, organize projects and discover tools from a local Windows hub.</strong><br/>Όλα τα εργαλεία AI, σε έναν κόμβο.</p>
 
 <p align="center"><a href="https://github.com/gs-applabs/Kombos/releases/download/v4.9.9/KombosSetup-4.9.9.exe"><img alt="Download v4.9.9" src="https://img.shields.io/badge/DOWNLOAD-v4.9.9-087EA4?style=for-the-badge"/></a> <a href="https://github.com/gs-applabs/Kombos/releases/latest"><img alt="Release notes" src="https://img.shields.io/badge/RELEASE-NOTES-334155?style=for-the-badge"/></a></p>
