@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '11.0.x'
-      - name: Render actual application in an STA test process
+      - name: Build and capture real application with temporary CI harness
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -28,82 +28,82 @@ jobs:
           using System;
           using System.IO;
           using System.Linq;
-          using System.Reflection;
-          using System.Threading;
           using System.Windows;
           using System.Windows.Media;
           using System.Windows.Media.Imaging;
           using System.Windows.Threading;
-          using Xunit;
-          namespace Kombos.Tests;
-          public class ProductCaptureTests
+          namespace Kombos
           {
-              static void Pump(int milliseconds)
+            public partial class MainWindow
+            {
+              internal void BeginProductCapture()
               {
-                  var frame=new DispatcherFrame();
-                  var timer=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(milliseconds)};
-                  timer.Tick+=(_,_)=>{timer.Stop();frame.Continue=false;};
-                  timer.Start();Dispatcher.PushFrame(frame);
+                var output=Environment.GetEnvironmentVariable("GS_SNAPSHOT_DIR");
+                if(string.IsNullOrEmpty(output))return;
+                var timer=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(1500)};
+                timer.Tick+=(_,_)=>{
+                  timer.Stop();
+                  try{CaptureProductGallery(output);_reallyExiting=true;Close();Application.Current.Shutdown(0);}
+                  catch(Exception ex){Directory.CreateDirectory(output);File.WriteAllText(Path.Combine(output,"error.txt"),ex.ToString());_reallyExiting=true;Close();Application.Current.Shutdown(1);}
+                };
+                timer.Start();
               }
-              static void Save(Window window,string file)
+              static void CapturePump(int milliseconds)
               {
-                  Pump(550);window.UpdateLayout();
-                  var w=(int)Math.Ceiling(window.ActualWidth);var h=(int)Math.Ceiling(window.ActualHeight);
-                  if(w<300||h<200)throw new Exception("Invalid window dimensions");
-                  var bitmap=new RenderTargetBitmap(w,h,96,96,PixelFormats.Pbgra32);
-                  bitmap.Render(window);
-                  var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                  using var stream=File.Create(file);encoder.Save(stream);
+                var frame=new DispatcherFrame();
+                var timer=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(milliseconds)};
+                timer.Tick+=(_,_)=>{timer.Stop();frame.Continue=false;};
+                timer.Start();Dispatcher.PushFrame(frame);
               }
-              [Fact]
-              public void CaptureCatalogAndTools()
+              static void CaptureSave(Window window,string file)
               {
-                  var output=Environment.GetEnvironmentVariable("GS_SNAPSHOT_DIR");
-                  if(string.IsNullOrEmpty(output))return;
-                  Directory.CreateDirectory(output);Exception? error=null;
-                  var thread=new Thread(()=>{
-                    try{
-                      Application.ResourceAssembly=typeof(Kombos.App).Assembly;
-                      var app=new Kombos.App();app.InitializeComponent();
-                      app.ShutdownMode=ShutdownMode.OnExplicitShutdown;
-                      var w=new Kombos.MainWindow{Width=1400,Height=850};
-                      app.MainWindow=w;
-                      var type=w.GetType();
-                      object? Call(string name,params object[] args)=>type.GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public)!.Invoke(w,args);
-                      w.Show();Pump(1500);
-                      Save(w,Path.Combine(output,"00-welcome.png"));
-                      Call("HideOnboarding");Pump(1500);
-                      Save(w,Path.Combine(output,"01-suite.png"));
-                      Call("HideSuite");Pump(1000);
-                      foreach(var theme in new[]{0,1})
-                      {
-                          if(theme==1)w.ThemeToggleButton_Click(w,new RoutedEventArgs());
-                          foreach(var category in Kombos.Data.Catalog.Categories)
-                          {
-                              Call("SelectCategory",category.Id);
-                              Save(w,Path.Combine(output,$"{theme}-catalog-{category.Id}.png"));
-                          }
-                          Call("ToggleFocusMode");Save(w,Path.Combine(output,$"{theme}-focus.png"));Call("ToggleFocusMode");
-                      }
-                      w.OpenSettingsWindow("behavior");Pump(600);
-                      foreach(var win in app.Windows.OfType<Window>().Where(x=>x!=w&&x.IsVisible).ToArray())
-                      { Save(win,Path.Combine(output,"settings-"+win.GetType().Name+".png"));win.Close(); }
-                      w.OpenAnalyticsWindow();Pump(600);
-                      foreach(var win in app.Windows.OfType<Window>().Where(x=>x!=w&&x.IsVisible).ToArray())
-                      { Save(win,Path.Combine(output,"analytics-"+win.GetType().Name+".png"));win.Close(); }
-                      type.GetField("_reallyExiting",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(w,true);
-                      w.Close();
-                    }catch(Exception ex){error=ex;}
-                  });
-                  thread.SetApartmentState(ApartmentState.STA);thread.Start();
-                  if(!thread.Join(TimeSpan.FromMinutes(8)))throw new TimeoutException("Capture timed out");
-                  if(error!=null)throw error;
+                CapturePump(500);window.UpdateLayout();
+                var w=(int)Math.Ceiling(window.ActualWidth);var h=(int)Math.Ceiling(window.ActualHeight);
+                if(w<300||h<200)throw new Exception("Invalid window dimensions");
+                var bitmap=new RenderTargetBitmap(w,h,96,96,PixelFormats.Pbgra32);
+                bitmap.Render(window);
+                var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using var stream=File.Create(file);encoder.Save(stream);
               }
+              void CaptureProductGallery(string output)
+              {
+                Directory.CreateDirectory(output);Width=1400;Height=850;
+                CaptureSave(this,Path.Combine(output,"00-welcome.png"));
+                HideOnboarding();CapturePump(1500);
+                CaptureSave(this,Path.Combine(output,"01-suite.png"));HideSuite();CapturePump(900);
+                foreach(var theme in new[]{0,1})
+                {
+                  if(theme==1)ThemeToggleButton_Click(this,new RoutedEventArgs());
+                  foreach(var category in Kombos.Data.Catalog.Categories)
+                  {
+                    SelectCategory(category.Id);CaptureSave(this,Path.Combine(output,$"{theme}-catalog-{category.Id}.png"));
+                  }
+                  ToggleFocusMode();CaptureSave(this,Path.Combine(output,$"{theme}-focus.png"));ToggleFocusMode();
+                }
+                OpenSettingsWindow("behavior");CapturePump(600);
+                foreach(var win in Application.Current.Windows.OfType<Window>().Where(x=>x!=this&&x.IsVisible).ToArray())
+                {CaptureSave(win,Path.Combine(output,"settings-"+win.GetType().Name+".png"));win.Close();}
+                OpenAnalyticsWindow();CapturePump(600);
+                foreach(var win in Application.Current.Windows.OfType<Window>().Where(x=>x!=this&&x.IsVisible).ToArray())
+                {CaptureSave(win,Path.Combine(output,"analytics-"+win.GetType().Name+".png"));win.Close();}
+              }
+            }
           }
           '@
-          Set-Content Kombos.Tests/ProductCaptureTests.cs -Value $source -Encoding utf8
-          dotnet test Kombos.Tests/Kombos.Tests.csproj -c Release --filter FullyQualifiedName~ProductCaptureTests
-          if ($LASTEXITCODE -ne 0) { throw 'Render tests failed' }
+          Set-Content ProductGallery.cs -Value $source -Encoding utf8
+          $path = 'MainWindow.xaml.cs'
+          $code = Get-Content $path -Raw
+          if (!$code.Contains('BuildUsageRows();')) { throw 'Main window hook missing' }
+          $code = $code.Replace('BuildUsageRows();','BuildUsageRows(); Loaded += (_,_) => BeginProductCapture();')
+          Set-Content $path $code -Encoding utf8
+          dotnet publish Kombos.csproj -c Release -o "$env:RUNNER_TEMP/kombos-capture-build"
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+          $exe = Join-Path $env:RUNNER_TEMP 'kombos-capture-build/Kombos.exe'
+          $p = Start-Process -FilePath $exe -PassThru
+          if (!$p.WaitForExit(240000)) { Stop-Process -Id $p.Id -Force; throw 'Capture timed out' }
+          $log = Join-Path $env:GS_SNAPSHOT_DIR 'error.txt'
+          if (Test-Path $log) { Get-Content $log }
+          if ($p.ExitCode -ne 0) { throw "Capture failed: $($p.ExitCode)" }
       - name: Validate and publish gallery
         shell: pwsh
         run: |
