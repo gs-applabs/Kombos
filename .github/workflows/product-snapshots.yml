@@ -63,6 +63,7 @@ jobs:
                   Directory.CreateDirectory(output);Exception? error=null;
                   var thread=new Thread(()=>{
                     try{
+                      Application.ResourceAssembly=typeof(Kombos.App).Assembly;
                       var app=new Kombos.App();app.InitializeComponent();
                       app.ShutdownMode=ShutdownMode.OnExplicitShutdown;
                       var w=new Kombos.MainWindow{Width=1400,Height=850};
