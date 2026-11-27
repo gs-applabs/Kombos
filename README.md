@@ -248,3 +248,9 @@ application. Kombos Gateway is inspired by the idea behind the open-source
 ### Third-party notices / Άδειες τρίτων
 
 Kombos uses .NET (MIT) and the `System.Speech` package (MIT). The icons shown in "The Opsis family" are the icons of the respective apps of the same author, embedded as local resources. Product names and logos in the tools catalogue belong to their owners. / Το Kombos χρησιμοποιεί .NET (MIT) και το πακέτο `System.Speech` (MIT)· τα εικονίδια της οικογένειας Opsis είναι των αντίστοιχων εφαρμογών του ίδιου δημιουργού, ενσωματωμένα τοπικά· τα ονόματα/λογότυπα του καταλόγου ανήκουν στους ιδιοκτήτες τους.
+
+
+## Current screenshot gallery / Νέα στιγμιότυπα
+
+[Browse application screenshots / Προβολή στιγμιοτύπων](docs/product-snapshots/README.md)
+
