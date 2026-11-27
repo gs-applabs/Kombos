@@ -1,0 +1,149 @@
+name: Product snapshots
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths: ['.github/workflows/product-snapshots.yml']
+permissions:
+  contents: write
+concurrency:
+  group: product-snapshots
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/master'
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+      - name: Render actual application in an STA test process
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:GS_SNAPSHOT_DIR = Join-Path $env:RUNNER_TEMP 'product-snapshots'
+          $source = @'
+          using System;
+          using System.IO;
+          using System.Linq;
+          using System.Reflection;
+          using System.Threading;
+          using System.Windows;
+          using System.Windows.Media;
+          using System.Windows.Media.Imaging;
+          using System.Windows.Threading;
+          using Xunit;
+          namespace Kombos.Tests;
+          public class ProductCaptureTests
+          {
+              static void Pump(int milliseconds)
+              {
+                  var frame=new DispatcherFrame();
+                  var timer=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(milliseconds)};
+                  timer.Tick+=(_,_)=>{timer.Stop();frame.Continue=false;};
+                  timer.Start();Dispatcher.PushFrame(frame);
+              }
+              static void Save(Window window,string file)
+              {
+                  Pump(550);window.UpdateLayout();
+                  var w=(int)Math.Ceiling(window.ActualWidth);var h=(int)Math.Ceiling(window.ActualHeight);
+                  if(w<300||h<200)throw new Exception("Invalid window dimensions");
+                  var bitmap=new RenderTargetBitmap(w,h,96,96,PixelFormats.Pbgra32);
+                  bitmap.Render(window);
+                  var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                  using var stream=File.Create(file);encoder.Save(stream);
+              }
+              [Fact]
+              public void CaptureCatalogAndTools()
+              {
+                  var output=Environment.GetEnvironmentVariable("GS_SNAPSHOT_DIR");
+                  if(string.IsNullOrEmpty(output))return;
+                  Directory.CreateDirectory(output);Exception? error=null;
+                  var thread=new Thread(()=>{
+                    try{
+                      var app=new Kombos.App();app.InitializeComponent();
+                      app.ShutdownMode=ShutdownMode.OnExplicitShutdown;
+                      var w=new Kombos.MainWindow{Width=1400,Height=850};
+                      app.MainWindow=w;
+                      var type=w.GetType();
+                      object? Call(string name,params object[] args)=>type.GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public)!.Invoke(w,args);
+                      w.Show();Pump(1500);
+                      Save(w,Path.Combine(output,"00-welcome.png"));
+                      Call("HideOnboarding");Pump(1500);
+                      Save(w,Path.Combine(output,"01-suite.png"));
+                      Call("HideSuite");Pump(1000);
+                      foreach(var theme in new[]{0,1})
+                      {
+                          if(theme==1)w.ThemeToggleButton_Click(w,new RoutedEventArgs());
+                          foreach(var category in Kombos.Data.Catalog.Categories)
+                          {
+                              Call("SelectCategory",category.Id);
+                              Save(w,Path.Combine(output,$"{theme}-catalog-{category.Id}.png"));
+                          }
+                          Call("ToggleFocusMode");Save(w,Path.Combine(output,$"{theme}-focus.png"));Call("ToggleFocusMode");
+                      }
+                      w.OpenSettingsWindow("behavior");Pump(600);
+                      foreach(var win in app.Windows.OfType<Window>().Where(x=>x!=w&&x.IsVisible).ToArray())
+                      { Save(win,Path.Combine(output,"settings-"+win.GetType().Name+".png"));win.Close(); }
+                      w.OpenAnalyticsWindow();Pump(600);
+                      foreach(var win in app.Windows.OfType<Window>().Where(x=>x!=w&&x.IsVisible).ToArray())
+                      { Save(win,Path.Combine(output,"analytics-"+win.GetType().Name+".png"));win.Close(); }
+                      type.GetField("_reallyExiting",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(w,true);
+                      w.Close();
+                    }catch(Exception ex){error=ex;}
+                  });
+                  thread.SetApartmentState(ApartmentState.STA);thread.Start();
+                  if(!thread.Join(TimeSpan.FromMinutes(8)))throw new TimeoutException("Capture timed out");
+                  if(error!=null)throw error;
+              }
+          }
+          '@
+          Set-Content Kombos.Tests/ProductCaptureTests.cs -Value $source -Encoding utf8
+          dotnet test Kombos.Tests/Kombos.Tests.csproj -c Release --filter FullyQualifiedName~ProductCaptureTests
+          if ($LASTEXITCODE -ne 0) { throw 'Render tests failed' }
+      - name: Validate and publish gallery
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = Join-Path $env:RUNNER_TEMP 'product-snapshots'
+          $files = @(Get-ChildItem $src -Recurse -File -Filter '*.png')
+          if ($files.Count -lt 18) { throw "Too few screenshots: $($files.Count)" }
+          Add-Type -AssemblyName System.Drawing
+          foreach ($file in $files) {
+            $image = [Drawing.Image]::FromFile($file.FullName)
+            try { if ($image.Width -lt 32 -or $image.Height -lt 32) { throw "Invalid image: $($file.Name)" } } finally { $image.Dispose() }
+          }
+          $dest = 'docs/product-snapshots'
+          if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          $lines = @('# Application screenshots / Στιγμιότυπα εφαρμογής', '', "Source commit: $env:GITHUB_SHA", '', 'Actual WPF interface and catalog in two themes, isolated clean profile without API credentials. AI response and live provider operations are not simulated.', '')
+          foreach ($file in ($files | Sort-Object FullName)) {
+            $relative = [IO.Path]::GetRelativePath($src, $file.FullName).Replace('\','/')
+            $target = Join-Path $dest $relative
+            New-Item -ItemType Directory -Force (Split-Path $target) | Out-Null
+            Copy-Item $file.FullName $target
+            $lines += @("### $relative", '', "![$relative]($relative)", '')
+          }
+          $lines | Set-Content "$dest/README.md" -Encoding utf8
+          $readme = Get-Content README.md -Raw
+          if (!$readme.Contains('docs/product-snapshots/README.md')) {
+            $readme += "`n`n## Current screenshot gallery / Νέα στιγμιότυπα`n`n[Browse application screenshots / Προβολή στιγμιοτύπων](docs/product-snapshots/README.md)`n"
+            Set-Content README.md $readme -Encoding utf8
+          }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- docs/product-snapshots README.md
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) { exit 0 }
+          git commit -m 'docs: refresh application screenshots'
+          if ($LASTEXITCODE -ne 0) { throw 'Commit failed' }
+          git push origin HEAD:master
+          if ($LASTEXITCODE -ne 0) { throw 'Push rejected; no forced update' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: product-snapshots
+          path: ${{ runner.temp }}/product-snapshots/**/*.png
+          if-no-files-found: warn
