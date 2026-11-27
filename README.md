@@ -6,27 +6,22 @@
 
 <p align="center"><strong>Connect AI agents, organize projects and discover tools from a local Windows hub.</strong><br/>Όλα τα εργαλεία AI, σε έναν κόμβο.</p>
 
-<p align="center"><a href="https://github.com/gs-applabs/Kombos/releases/download/v4.9.9/KombosSetup-4.9.9.exe"><img alt="Download v4.9.9" src="https://img.shields.io/badge/DOWNLOAD-v4.9.9-087EA4?style=for-the-badge"/></a> <a href="https://github.com/gs-applabs/Kombos/releases/latest"><img alt="Release notes" src="https://img.shields.io/badge/RELEASE-NOTES-334155?style=for-the-badge"/></a></p>
+<p align="center"><a href="https://github.com/gs-applabs/Kombos/releases/latest"><img alt="Download latest published release" src="https://img.shields.io/badge/DOWNLOAD-LATEST%20RELEASE-087EA4?style=for-the-badge"/></a> <a href="docs/SHOWCASE.md"><img alt="Explore screenshots" src="https://img.shields.io/badge/EXPLORE-SCREENSHOTS-334155?style=for-the-badge"/></a></p>
 
 <p align="center"><a href="#at-a-glance--με-μια-ματιά">Overview / Επισκόπηση</a> · <a href="#full-documentation--αναλυτική-τεκμηρίωση">Full documentation / Τεκμηρίωση</a> · <a href="https://github.com/gs-applabs/Kombos/issues">Support / Υποστήριξη</a> · <a href="https://github.com/gs-applabs">GS App Labs</a></p>
 
-## Current screenshot gallery / Νέα στιγμιότυπα
+## Visual showcase / Οπτική παρουσίαση
 
 <table>
 <tr>
-<td width="50%" valign="top"><a href="docs/product-snapshots/0-catalog-agents.png"><img src="docs/product-snapshots/0-catalog-agents.png" width="100%" alt="Agents and automation / Αυτοματισμοί"/></a><br/><sub>Agents and automation / Αυτοματισμοί</sub></td>
-<td width="50%" valign="top"><a href="docs/product-snapshots/1-catalog-text.png"><img src="docs/product-snapshots/1-catalog-text.png" width="100%" alt="Dark AI workspace / Σκούρο περιβάλλον"/></a><br/><sub>Dark AI workspace / Σκούρο περιβάλλον</sub></td>
+<td width="50%" valign="top"><a href="docs/SHOWCASE.md"><img src="docs/product-snapshots/0-catalog-agents.png" alt="Theme 0 · agents" width="100%"/></a><br/><sub>Theme 0 · agents</sub></td>
+<td width="50%" valign="top"><a href="docs/SHOWCASE.md"><img src="docs/product-snapshots/1-catalog-text.png" alt="Theme 1 · text" width="100%"/></a><br/><sub>Theme 1 · text</sub></td>
 </tr>
 </table>
 
-**[Browse application screenshots / Προβολή στιγμιοτύπων](docs/product-snapshots/README.md)** · [Capture workflow / Μηχανισμός λήψης](../../actions/workflows/product-snapshots.yml)
+**[Explore 22 screenshots / Εξερεύνηση στιγμιοτύπων](docs/SHOWCASE.md)** · [Original capture index](docs/product-snapshots/README.md) · [Media kit](https://github.com/gs-applabs/gs-applabs/tree/main/assets/showcase)
 
-**[30-second video tour](https://github.com/gs-applabs/gs-applabs/blob/main/assets/showcase/kombos.mp4) · [Animated screenshot preview](https://github.com/gs-applabs/gs-applabs/blob/main/assets/showcase/kombos.gif) · [Social preview](https://github.com/gs-applabs/gs-applabs/blob/main/assets/showcase/kombos-social.png)**
-
-<sub>Real screenshot slideshows, not live recordings. / Παρουσιάσεις πραγματικών στιγμιοτύπων, όχι ζωντανή καταγραφή.</sub>
-
-
-<sub>Actual application rendering on Windows CI. / Πραγματική απεικόνιση σε Windows CI.</sub>
+<sub>Actual UI previews from development commit `a41c5ab27dc7`; may differ from the latest published installer. / Πραγματικές εικόνες συγκεκριμένου build ανάπτυξης, ενδέχεται να διαφέρουν από τη δημοσιευμένη έκδοση.</sub>
 
 ## At a glance / Με μια ματιά
 
@@ -37,6 +32,8 @@
 | **Control / Έλεγχος** | Local API-key storage and configurable providers / Τοπική αποθήκευση κλειδιών και επιλογή παρόχων |
 
 ### Get started / Ξεκίνημα
+
+For the newest installer always use [latest published release](https://github.com/gs-applabs/Kombos/releases/latest). Version-specific links below are retained as reference. / Για τη νεότερη έκδοση χρησιμοποίησε τον σύνδεσμο τελευταίας δημοσιευμένης έκδοσης.
 
 - **Installer:** [KombosSetup-4.9.9.exe](https://github.com/gs-applabs/Kombos/releases/download/v4.9.9/KombosSetup-4.9.9.exe) · [SHA-256](https://github.com/gs-applabs/Kombos/releases/download/v4.9.9/KombosSetup-4.9.9.exe.sha256)
 - **Requirements / Απαιτήσεις:** Windows · .NET 11 Desktop Runtime · provider credentials for online services.
