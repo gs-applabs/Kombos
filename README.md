@@ -6,6 +6,19 @@
 
 <p align="center"><a href="#at-a-glance--με-μια-ματιά">Overview / Επισκόπηση</a> · <a href="#full-documentation--αναλυτική-τεκμηρίωση">Full documentation / Τεκμηρίωση</a> · <a href="https://github.com/gs-applabs/Kombos/issues">Support / Υποστήριξη</a> · <a href="https://github.com/gs-applabs">GS App Labs</a></p>
 
+## Current screenshot gallery / Νέα στιγμιότυπα
+
+<table>
+<tr>
+<td width="50%" valign="top"><a href="docs/product-snapshots/0-catalog-agents.png"><img src="docs/product-snapshots/0-catalog-agents.png" width="100%" alt="Agents and automation / Αυτοματισμοί"/></a><br/><sub>Agents and automation / Αυτοματισμοί</sub></td>
+<td width="50%" valign="top"><a href="docs/product-snapshots/1-catalog-text.png"><img src="docs/product-snapshots/1-catalog-text.png" width="100%" alt="Dark AI workspace / Σκούρο περιβάλλον"/></a><br/><sub>Dark AI workspace / Σκούρο περιβάλλον</sub></td>
+</tr>
+</table>
+
+**[Browse application screenshots / Προβολή στιγμιοτύπων](docs/product-snapshots/README.md)** · [Capture workflow / Μηχανισμός λήψης](../../actions/workflows/product-snapshots.yml)
+
+<sub>Actual application rendering on Windows CI. / Πραγματική απεικόνιση σε Windows CI.</sub>
+
 ## At a glance / Με μια ματιά
 
 | | What you can do / Τι μπορείς να κάνεις |
@@ -248,9 +261,3 @@ application. Kombos Gateway is inspired by the idea behind the open-source
 ### Third-party notices / Άδειες τρίτων
 
 Kombos uses .NET (MIT) and the `System.Speech` package (MIT). The icons shown in "The Opsis family" are the icons of the respective apps of the same author, embedded as local resources. Product names and logos in the tools catalogue belong to their owners. / Το Kombos χρησιμοποιεί .NET (MIT) και το πακέτο `System.Speech` (MIT)· τα εικονίδια της οικογένειας Opsis είναι των αντίστοιχων εφαρμογών του ίδιου δημιουργού, ενσωματωμένα τοπικά· τα ονόματα/λογότυπα του καταλόγου ανήκουν στους ιδιοκτήτες τους.
-
-
-## Current screenshot gallery / Νέα στιγμιότυπα
-
-[Browse application screenshots / Προβολή στιγμιοτύπων](docs/product-snapshots/README.md)
-
